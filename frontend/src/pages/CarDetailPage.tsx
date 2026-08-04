@@ -3,8 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { getCar, type Car } from '../api/cars';
 import { getServiceRecords, deleteServiceRecord, type ServiceRecord } from '../api/service';
 import { getFuelRecords, deleteFuelRecord, getFuelStats, type FuelRecord, type FuelStats } from '../api/fuel';
+import { getExpenses, deleteExpense, EXPENSE_CATEGORY_LABELS, type Expense } from '../api/expenses';
 import AddServiceModal from '../components/AddServiceModal';
 import AddFuelModal from '../components/AddFuelModal';
+import AddExpenseModal from '../components/AddExpenseModal';
 
 function CarDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -12,25 +14,29 @@ function CarDetailPage() {
   const [records, setRecords] = useState<ServiceRecord[]>([]);
   const [fuelRecords, setFuelRecords] = useState<FuelRecord[]>([]);
   const [fuelStats, setFuelStats] = useState<FuelStats | null>(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showFuelModal, setShowFuelModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'service' | 'fuel'>('service');
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'service' | 'fuel' | 'expenses'>('service');
 
   async function loadData() {
     if (!id) return;
     setLoading(true);
     try {
-      const [carData, recordsData, fuelData, statsData] = await Promise.all([
+      const [carData, recordsData, fuelData, statsData, expensesData] = await Promise.all([
         getCar(id),
         getServiceRecords(id),
         getFuelRecords(id),
         getFuelStats(id),
+        getExpenses(id),
       ]);
       setCar(carData);
       setRecords(recordsData);
       setFuelRecords(fuelData);
       setFuelStats(statsData);
+      setExpenses(expensesData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -54,7 +60,15 @@ function CarDetailPage() {
     loadData();
   }
 
+  async function handleDeleteExpense(expenseId: string) {
+    if (!confirm('Opravdu smazat tento výdaj?')) return;
+    await deleteExpense(expenseId);
+    loadData();
+  }
+
   const totalServiceCost = records.reduce((sum, r) => sum + (r.price || 0), 0);
+  const totalExpensesCost = expenses.reduce((sum, e) => sum + e.price, 0);
+  const totalOverallCost = totalServiceCost + totalExpensesCost + (fuelStats?.totalSpent || 0);
 
   if (loading) {
     return (
@@ -89,31 +103,30 @@ function CarDetailPage() {
           </p>
         </div>
 
-        {/* Statistiky spotřeby */}
-        {fuelStats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <div className="bg-slate-800 p-3 rounded-lg text-center">
-              <p className="text-slate-400 text-xs">Průměrná spotřeba</p>
-              <p className="text-white font-bold text-lg">
-                {fuelStats.averageConsumption !== null ? `${fuelStats.averageConsumption} l/100km` : '—'}
-              </p>
-            </div>
-            <div className="bg-slate-800 p-3 rounded-lg text-center">
-              <p className="text-slate-400 text-xs">Cena za km</p>
-              <p className="text-white font-bold text-lg">
-                {fuelStats.pricePerKm !== null ? `${fuelStats.pricePerKm} Kč` : '—'}
-              </p>
-            </div>
-            <div className="bg-slate-800 p-3 rounded-lg text-center">
-              <p className="text-slate-400 text-xs">Útrata za palivo</p>
-              <p className="text-white font-bold text-lg">{fuelStats.totalSpent.toLocaleString('cs-CZ')} Kč</p>
-            </div>
-            <div className="bg-slate-800 p-3 rounded-lg text-center">
-              <p className="text-slate-400 text-xs">Servis celkem</p>
-              <p className="text-white font-bold text-lg">{totalServiceCost.toLocaleString('cs-CZ')} Kč</p>
-            </div>
+        {/* Statistiky */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="bg-slate-800 p-3 rounded-lg text-center">
+            <p className="text-slate-400 text-xs">Průměrná spotřeba</p>
+            <p className="text-white font-bold text-lg">
+              {fuelStats?.averageConsumption !== null && fuelStats?.averageConsumption !== undefined
+                ? `${fuelStats.averageConsumption} l/100km` : '—'}
+            </p>
           </div>
-        )}
+          <div className="bg-slate-800 p-3 rounded-lg text-center">
+            <p className="text-slate-400 text-xs">Palivo celkem</p>
+            <p className="text-white font-bold text-lg">{(fuelStats?.totalSpent || 0).toLocaleString('cs-CZ')} Kč</p>
+          </div>
+          <div className="bg-slate-800 p-3 rounded-lg text-center">
+            <p className="text-slate-400 text-xs">Servis + výdaje</p>
+            <p className="text-white font-bold text-lg">
+              {(totalServiceCost + totalExpensesCost).toLocaleString('cs-CZ')} Kč
+            </p>
+          </div>
+          <div className="bg-slate-800 p-3 rounded-lg text-center border border-blue-600">
+            <p className="text-slate-400 text-xs">Celkem za auto</p>
+            <p className="text-white font-bold text-lg">{totalOverallCost.toLocaleString('cs-CZ')} Kč</p>
+          </div>
+        </div>
 
         {/* Přepínač záložek */}
         <div className="flex gap-2 mb-4">
@@ -132,6 +145,14 @@ function CarDetailPage() {
             }`}
           >
             ⛽ Tankování
+          </button>
+          <button
+            onClick={() => setActiveTab('expenses')}
+            className={`px-4 py-2 rounded font-semibold ${
+              activeTab === 'expenses' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+            }`}
+          >
+            💰 Výdaje
           </button>
         </div>
 
@@ -227,22 +248,60 @@ function CarDetailPage() {
             )}
           </>
         )}
+
+        {/* Výdaje */}
+        {activeTab === 'expenses' && (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-white">Výdaje</h2>
+              <button
+                onClick={() => setShowExpenseModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+              >
+                + Přidat výdaj
+              </button>
+            </div>
+
+            {expenses.length === 0 ? (
+              <p className="text-slate-400">Zatím žádné výdaje.</p>
+            ) : (
+              <div className="space-y-3">
+                {expenses.map((expense) => (
+                  <div key={expense.id} className="bg-slate-800 p-4 rounded-lg shadow flex justify-between items-start">
+                    <div>
+                      <h3 className="text-white font-semibold">{EXPENSE_CATEGORY_LABELS[expense.category]}</h3>
+                      <p className="text-slate-400 text-sm">
+                        {new Date(expense.date).toLocaleDateString('cs-CZ')}
+                      </p>
+                      {expense.description && (
+                        <p className="text-slate-400 text-sm mt-1">{expense.description}</p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white font-semibold">{expense.price.toLocaleString('cs-CZ')} Kč</p>
+                      <button
+                        onClick={() => handleDeleteExpense(expense.id)}
+                        className="text-red-400 hover:text-red-300 text-sm mt-1"
+                      >
+                        Smazat
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {showServiceModal && id && (
-        <AddServiceModal
-          carId={id}
-          onClose={() => setShowServiceModal(false)}
-          onCreated={loadData}
-        />
+        <AddServiceModal carId={id} onClose={() => setShowServiceModal(false)} onCreated={loadData} />
       )}
-
       {showFuelModal && id && (
-        <AddFuelModal
-          carId={id}
-          onClose={() => setShowFuelModal(false)}
-          onCreated={loadData}
-        />
+        <AddFuelModal carId={id} onClose={() => setShowFuelModal(false)} onCreated={loadData} />
+      )}
+      {showExpenseModal && id && (
+        <AddExpenseModal carId={id} onClose={() => setShowExpenseModal(false)} onCreated={loadData} />
       )}
     </div>
   );
