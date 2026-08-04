@@ -1,0 +1,25 @@
+export const CAR_MAKES: Record<string, string[]> = {
+  'Škoda': ['Octavia', 'Fabia', 'Superb', 'Kodiaq', 'Karoq', 'Kamiq', 'Scala', 'Enyaq'],
+  'Volkswagen': ['Golf', 'Passat', 'Polo', 'Tiguan', 'T-Roc', 'Touran', 'Arteon', 'ID.3', 'ID.4'],
+  'Ford': ['Focus', 'Fiesta', 'Kuga', 'Mondeo', 'Puma', 'EcoSport'],
+  'Toyota': ['Corolla', 'Yaris', 'RAV4', 'Camry', 'C-HR', 'Aygo'],
+  'Hyundai': ['i20', 'i30', 'Tucson', 'Kona', 'Santa Fe', 'ix35'],
+  'Kia': ['Ceed', 'Sportage', 'Rio', 'Sorento', 'Niro', 'Picanto'],
+  'BMW': ['Řada 1', 'Řada 2', 'Řada 3', 'Řada 5', 'X1', 'X3', 'X5'],
+  'Mercedes-Benz': ['Třída A', 'Třída B', 'Třída C', 'Třída E', 'GLA', 'GLC'],
+  'Audi': ['A1', 'A3', 'A4', 'A6', 'Q2', 'Q3', 'Q5'],
+  'Opel': ['Corsa', 'Astra', 'Insignia', 'Mokka', 'Crossland'],
+  'Peugeot': ['208', '308', '2008', '3008', '5008'],
+  'Renault': ['Clio', 'Megane', 'Captur', 'Kadjar', 'Scenic'],
+  'Citroën': ['C3', 'C4', 'C5', 'Berlingo'],
+  'Fiat': ['Panda', '500', 'Tipo', 'Punto'],
+  'Seat': ['Ibiza', 'Leon', 'Ateca', 'Arona'],
+  'Honda': ['Civic', 'CR-V', 'Jazz', 'HR-V'],
+  'Mazda': ['Mazda2', 'Mazda3', 'Mazda6', 'CX-5'],
+  'Nissan': ['Qashqai', 'Juke', 'Micra', 'X-Trail'],
+  'Volvo': ['V40', 'V60', 'XC40', 'XC60', 'XC90'],
+  'Suzuki': ['Swift', 'Vitara', 'SX4', 'Ignis'],
+  'Jiná': ['Jiný model'],
+};
+
+export const CAR_MAKE_NAMES = Object.keys(CAR_MAKES);

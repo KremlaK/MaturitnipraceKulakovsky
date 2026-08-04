@@ -40,4 +40,21 @@ model Car {
 
   ownerId      String
   owner        User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  serviceRecords ServiceRecord[]
+}
+
+model ServiceRecord {
+  id          String   @id @default(uuid())
+  type        String
+  description String?
+  price       Float?
+  date        DateTime
+  mileage     Int?
+  invoiceUrl  String?
+  photoUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  carId       String
+  car         Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
 }
