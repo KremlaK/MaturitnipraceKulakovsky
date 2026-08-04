@@ -38,9 +38,10 @@ model Car {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  ownerId      String
-  owner        User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId        String
+  owner          User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   serviceRecords ServiceRecord[]
+  fuelRecords    FuelRecord[]
 }
 
 model ServiceRecord {
@@ -57,4 +58,20 @@ model ServiceRecord {
 
   carId       String
   car         Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+}
+
+model FuelRecord {
+  id             String   @id @default(uuid())
+  date           DateTime
+  liters         Float
+  pricePerLiter  Float
+  totalPrice     Float
+  mileage        Int
+  fuelType       String
+  fullTank       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  carId          String
+  car            Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
 }
