@@ -156,6 +156,56 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
+router.put('/profile', authMiddleware, async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.userId },
+      data: { name: name || null },
+      select: { id: true, email: true, name: true, emailVerified: true },
+    });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Něco se pokazilo na serveru.' });
+  }
+});
+
+router.put('/change-password', authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Aktuální a nové heslo jsou povinné.' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Nové heslo musí mít alespoň 8 znaků.' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+
+    const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Aktuální heslo není správné.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: req.userId },
+      data: { password: hashedPassword },
+    });
+
+    res.json({ message: 'Heslo bylo úspěšně změněno.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Něco se pokazilo na serveru.' });
+  }
+});
+
 // Krok 1: Žádost o reset hesla (pošle e-mail)
 router.post('/forgot-password', async (req, res) => {
   try {
