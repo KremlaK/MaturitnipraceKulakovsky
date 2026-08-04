@@ -2,25 +2,35 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getCar, type Car } from '../api/cars';
 import { getServiceRecords, deleteServiceRecord, type ServiceRecord } from '../api/service';
+import { getFuelRecords, deleteFuelRecord, getFuelStats, type FuelRecord, type FuelStats } from '../api/fuel';
 import AddServiceModal from '../components/AddServiceModal';
+import AddFuelModal from '../components/AddFuelModal';
 
 function CarDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [car, setCar] = useState<Car | null>(null);
   const [records, setRecords] = useState<ServiceRecord[]>([]);
+  const [fuelRecords, setFuelRecords] = useState<FuelRecord[]>([]);
+  const [fuelStats, setFuelStats] = useState<FuelStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showFuelModal, setShowFuelModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'service' | 'fuel'>('service');
 
   async function loadData() {
     if (!id) return;
     setLoading(true);
     try {
-      const [carData, recordsData] = await Promise.all([
+      const [carData, recordsData, fuelData, statsData] = await Promise.all([
         getCar(id),
         getServiceRecords(id),
+        getFuelRecords(id),
+        getFuelStats(id),
       ]);
       setCar(carData);
       setRecords(recordsData);
+      setFuelRecords(fuelData);
+      setFuelStats(statsData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -38,7 +48,13 @@ function CarDetailPage() {
     loadData();
   }
 
-  const totalCost = records.reduce((sum, r) => sum + (r.price || 0), 0);
+  async function handleDeleteFuel(recordId: string) {
+    if (!confirm('Opravdu smazat toto tankování?')) return;
+    await deleteFuelRecord(recordId);
+    loadData();
+  }
+
+  const totalServiceCost = records.reduce((sum, r) => sum + (r.price || 0), 0);
 
   if (loading) {
     return (
@@ -71,61 +87,160 @@ function CarDetailPage() {
           <p className="text-slate-400">
             Aktuální nájezd: {car.mileage?.toLocaleString('cs-CZ')} km
           </p>
-          {car.vin && <p className="text-slate-500 text-sm mt-1">VIN: {car.vin}</p>}
         </div>
 
-        <div className="bg-slate-800 p-4 rounded-lg mb-6 flex justify-between items-center">
-          <span className="text-slate-300">Celkové náklady na servis</span>
-          <span className="text-white text-xl font-bold">{totalCost.toLocaleString('cs-CZ')} Kč</span>
-        </div>
+        {/* Statistiky spotřeby */}
+        {fuelStats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div className="bg-slate-800 p-3 rounded-lg text-center">
+              <p className="text-slate-400 text-xs">Průměrná spotřeba</p>
+              <p className="text-white font-bold text-lg">
+                {fuelStats.averageConsumption !== null ? `${fuelStats.averageConsumption} l/100km` : '—'}
+              </p>
+            </div>
+            <div className="bg-slate-800 p-3 rounded-lg text-center">
+              <p className="text-slate-400 text-xs">Cena za km</p>
+              <p className="text-white font-bold text-lg">
+                {fuelStats.pricePerKm !== null ? `${fuelStats.pricePerKm} Kč` : '—'}
+              </p>
+            </div>
+            <div className="bg-slate-800 p-3 rounded-lg text-center">
+              <p className="text-slate-400 text-xs">Útrata za palivo</p>
+              <p className="text-white font-bold text-lg">{fuelStats.totalSpent.toLocaleString('cs-CZ')} Kč</p>
+            </div>
+            <div className="bg-slate-800 p-3 rounded-lg text-center">
+              <p className="text-slate-400 text-xs">Servis celkem</p>
+              <p className="text-white font-bold text-lg">{totalServiceCost.toLocaleString('cs-CZ')} Kč</p>
+            </div>
+          </div>
+        )}
 
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-white">Servisní historie</h2>
+        {/* Přepínač záložek */}
+        <div className="flex gap-2 mb-4">
           <button
-            onClick={() => setShowModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+            onClick={() => setActiveTab('service')}
+            className={`px-4 py-2 rounded font-semibold ${
+              activeTab === 'service' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+            }`}
           >
-            + Přidat záznam
+            🔧 Servis
+          </button>
+          <button
+            onClick={() => setActiveTab('fuel')}
+            className={`px-4 py-2 rounded font-semibold ${
+              activeTab === 'fuel' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+            }`}
+          >
+            ⛽ Tankování
           </button>
         </div>
 
-        {records.length === 0 ? (
-          <p className="text-slate-400">Zatím žádné servisní záznamy.</p>
-        ) : (
-          <div className="space-y-3">
-            {records.map((record) => (
-              <div key={record.id} className="bg-slate-800 p-4 rounded-lg shadow flex justify-between items-start">
-                <div>
-                  <h3 className="text-white font-semibold">{record.type}</h3>
-                  <p className="text-slate-400 text-sm">
-                    {new Date(record.date).toLocaleDateString('cs-CZ')}
-                    {record.mileage && ` • ${record.mileage.toLocaleString('cs-CZ')} km`}
-                  </p>
-                  {record.description && (
-                    <p className="text-slate-400 text-sm mt-1">{record.description}</p>
-                  )}
-                </div>
-                <div className="text-right">
-                  {record.price && (
-                    <p className="text-white font-semibold">{record.price.toLocaleString('cs-CZ')} Kč</p>
-                  )}
-                  <button
-                    onClick={() => handleDeleteRecord(record.id)}
-                    className="text-red-400 hover:text-red-300 text-sm mt-1"
-                  >
-                    Smazat
-                  </button>
-                </div>
+        {/* Servisní historie */}
+        {activeTab === 'service' && (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-white">Servisní historie</h2>
+              <button
+                onClick={() => setShowServiceModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+              >
+                + Přidat záznam
+              </button>
+            </div>
+
+            {records.length === 0 ? (
+              <p className="text-slate-400">Zatím žádné servisní záznamy.</p>
+            ) : (
+              <div className="space-y-3">
+                {records.map((record) => (
+                  <div key={record.id} className="bg-slate-800 p-4 rounded-lg shadow flex justify-between items-start">
+                    <div>
+                      <h3 className="text-white font-semibold">{record.type}</h3>
+                      <p className="text-slate-400 text-sm">
+                        {new Date(record.date).toLocaleDateString('cs-CZ')}
+                        {record.mileage && ` • ${record.mileage.toLocaleString('cs-CZ')} km`}
+                      </p>
+                      {record.description && (
+                        <p className="text-slate-400 text-sm mt-1">{record.description}</p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      {record.price && (
+                        <p className="text-white font-semibold">{record.price.toLocaleString('cs-CZ')} Kč</p>
+                      )}
+                      <button
+                        onClick={() => handleDeleteRecord(record.id)}
+                        className="text-red-400 hover:text-red-300 text-sm mt-1"
+                      >
+                        Smazat
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </>
+        )}
+
+        {/* Tankování */}
+        {activeTab === 'fuel' && (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-white">Tankování</h2>
+              <button
+                onClick={() => setShowFuelModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+              >
+                + Přidat tankování
+              </button>
+            </div>
+
+            {fuelRecords.length === 0 ? (
+              <p className="text-slate-400">Zatím žádné záznamy tankování.</p>
+            ) : (
+              <div className="space-y-3">
+                {fuelRecords.map((record) => (
+                  <div key={record.id} className="bg-slate-800 p-4 rounded-lg shadow flex justify-between items-start">
+                    <div>
+                      <h3 className="text-white font-semibold">
+                        {record.fuelType} {!record.fullTank && '(částečné)'}
+                      </h3>
+                      <p className="text-slate-400 text-sm">
+                        {new Date(record.date).toLocaleDateString('cs-CZ')} • {record.mileage.toLocaleString('cs-CZ')} km
+                      </p>
+                      <p className="text-slate-400 text-sm">
+                        {record.liters} l × {record.pricePerLiter} Kč/l
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white font-semibold">{record.totalPrice.toLocaleString('cs-CZ')} Kč</p>
+                      <button
+                        onClick={() => handleDeleteFuel(record.id)}
+                        className="text-red-400 hover:text-red-300 text-sm mt-1"
+                      >
+                        Smazat
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {showModal && id && (
+      {showServiceModal && id && (
         <AddServiceModal
           carId={id}
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowServiceModal(false)}
+          onCreated={loadData}
+        />
+      )}
+
+      {showFuelModal && id && (
+        <AddFuelModal
+          carId={id}
+          onClose={() => setShowFuelModal(false)}
           onCreated={loadData}
         />
       )}
