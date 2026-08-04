@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import CarDetailPage from './pages/CarDetailPage';
 import DashboardPage from './pages/DashboardPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -37,6 +38,14 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route
+  path="/cars/:id"
+  element={
+    <PrivateRoute>
+      <CarDetailPage />
+    </PrivateRoute>
+  }
+/>
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
       </AuthProvider>

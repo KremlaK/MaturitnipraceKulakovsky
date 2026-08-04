@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getCars, deleteCar, type Car } from '../api/cars';
 import AddCarModal from '../components/AddCarModal';
@@ -66,9 +67,12 @@ function DashboardPage() {
               <div key={car.id} className="bg-slate-800 p-4 rounded-lg shadow">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-lg font-semibold text-white">
+                    <Link
+                      to={`/cars/${car.id}`}
+                      className="text-lg font-semibold text-white hover:text-blue-400"
+                    >
                       {car.make} {car.model}
-                    </h3>
+                    </Link>
                     <p className="text-slate-400 text-sm">
                       {car.year && `Rok: ${car.year}`} {car.licensePlate && `• SPZ: ${car.licensePlate}`}
                     </p>

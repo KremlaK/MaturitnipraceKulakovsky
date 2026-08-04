@@ -36,3 +36,8 @@ export async function createCar(data: CarInput): Promise<Car> {
 export async function deleteCar(id: string): Promise<void> {
   await api.delete(`/cars/${id}`);
 }
+
+export async function getCar(id: string): Promise<Car> {
+  const res = await api.get(`/cars/${id}`);
+  return res.data;
+}
