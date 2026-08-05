@@ -10,6 +10,7 @@ const fuelRoutes = require('./routes/fuel');
 const expenseRoutes = require('./routes/expenses');
 const statsRoutes = require('./routes/stats');
 const dashboardRoutes = require('./routes/dashboard');
+const reminderRoutes = require('./routes/reminders');
 
 //Middleware
 app.use(cors());
@@ -26,6 +27,8 @@ app.use('/api/cars', fuelRoutes);
 app.use('/api/cars', expenseRoutes);
 app.use('/api/cars', statsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/cars', reminderRoutes);
+app.use('/api/reminders', reminderRoutes);
 app.listen(PORT, () => {
      console.log(`Server běží na http://localhost:${PORT}`);
 })

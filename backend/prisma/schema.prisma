@@ -43,6 +43,7 @@ model Car {
   serviceRecords ServiceRecord[]
   fuelRecords    FuelRecord[]
   expenses       Expense[]
+  reminders      Reminder[]
 }
 
 model ServiceRecord {
@@ -99,4 +100,29 @@ model Expense {
 
   carId       String
   car         Car             @relation(fields: [carId], references: [id], onDelete: Cascade)
+}
+
+enum ReminderType {
+  VYMENA_OLEJE
+  STK
+  EMISE
+  POJISTENI
+  VYMENA_PNEUMATIK
+  VLASTNI
+}
+
+model Reminder {
+  id            String       @id @default(uuid())
+  type          ReminderType
+  title         String
+  notes         String?
+  dueDate       DateTime?
+  dueMileage    Int?
+  emailAlert    Boolean      @default(true)
+  completed     Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  carId         String
+  car           Car          @relation(fields: [carId], references: [id], onDelete: Cascade)
 }
