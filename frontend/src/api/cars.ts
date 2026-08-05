@@ -21,6 +21,7 @@ export interface CarInput {
   year?: number;
   mileage?: number;
   notes?: string;
+  photoUrl?: string;
 }
 
 export async function getCars(): Promise<Car[]> {
@@ -39,5 +40,10 @@ export async function deleteCar(id: string): Promise<void> {
 
 export async function getCar(id: string): Promise<Car> {
   const res = await api.get(`/cars/${id}`);
+  return res.data;
+}
+ 
+export async function updateCar(id: string, data: Partial<CarInput>): Promise<Car> {
+  const res = await api.put(`/cars/${id}`, data);
   return res.data;
 }

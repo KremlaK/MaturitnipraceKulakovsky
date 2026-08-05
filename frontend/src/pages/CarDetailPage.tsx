@@ -11,6 +11,7 @@ import { getCarStats, type CarStats } from '../api/stats';
 import CarCharts from '../components/CarCharts';
 import { getReminders, deleteReminder, toggleReminderComplete, REMINDER_TYPE_LABELS, type Reminder } from '../api/reminders';
 import AddReminderModal from '../components/AddReminderModal';
+import EditCarModal from '../components/EditCarModal';
 
 function CarDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +21,7 @@ function CarDetailPage() {
   const [fuelStats, setFuelStats] = useState<FuelStats | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showFuelModal, setShowFuelModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -120,11 +122,27 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
   return (
     <div className="min-h-screen bg-slate-900 p-8">
       <div className="max-w-4xl mx-auto">
-        <Link to="/dashboard" className="text-blue-400 hover:underline text-sm">
-          ← Zpět na dashboard
-        </Link>
+       <div className="flex justify-between items-center">
+          <Link to="/dashboard" className="text-blue-400 hover:underline text-sm">
+            ← Zpět na dashboard
+          </Link>
+          <button
+            onClick={() => setShowEditModal(true)}
+            className="text-slate-400 hover:text-white text-sm"
+          >
+            ✏️ Upravit auto
+          </button>
+        </div>
 
-        <div className="bg-slate-800 p-6 rounded-lg shadow-xl mt-4 mb-6">
+        <div className="bg-slate-800 rounded-lg shadow-xl mt-4 mb-6 overflow-hidden">
+        {car.photoUrl && (
+            <img
+              src={car.photoUrl}
+              alt={`${car.make} ${car.model}`}
+              className="w-full h-48 object-cover object-center"
+            />
+          )}
+          <div className="p-6">
           <h1 className="text-2xl font-bold text-white">{car.make} {car.model}</h1>
           <p className="text-slate-400 mt-1">
             {car.year && `Rok: ${car.year}`} {car.licensePlate && `• SPZ: ${car.licensePlate}`}
@@ -132,6 +150,7 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
           <p className="text-slate-400">
             Aktuální nájezd: {car.mileage?.toLocaleString('cs-CZ')} km
           </p>
+          </div>
         </div>
 
         {/* Statistiky */}
@@ -419,6 +438,9 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
       )}
       {showReminderModal && id && (
   <AddReminderModal carId={id} onClose={() => setShowReminderModal(false)} onCreated={loadData} />
+)}
+{showEditModal && car && (
+  <EditCarModal car={car} onClose={() => setShowEditModal(false)} onUpdated={loadData} />
 )}
     </div>
   );

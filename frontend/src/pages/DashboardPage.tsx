@@ -202,8 +202,15 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
                 {cars.map((car) => {
                   const carSummary = dashboard?.cars.find((c) => c.id === car.id);
                   return (
-                    <div key={car.id} className="bg-slate-800 p-4 rounded-lg shadow">
-                      <div className="flex justify-between items-start">
+                    <div key={car.id} className="bg-slate-800 rounded-lg shadow overflow-hidden">
+                    {car.photoUrl && (
+                        <img
+                          src={car.photoUrl}
+                          alt={`${car.make} ${car.model}`}
+                          className="w-full h-32 object-cover object-center"
+                        />
+                      )}
+                      <div className="p-4 flex justify-between items-start">
                         <div>
                           <Link
                             to={`/cars/${car.id}`}

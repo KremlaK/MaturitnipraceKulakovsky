@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { createCar, type CarInput } from '../api/cars';
 import { CAR_MAKES, CAR_MAKE_NAMES } from '../data/carMakes';
+import FileUpload from './FileUpload';
 
 interface Props {
   onClose: () => void;
@@ -117,6 +118,13 @@ function AddCarModal({ onClose, onCreated }: Props) {
               className="w-full px-3 py-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-blue-500"
             />
           </div>
+          
+          <FileUpload
+            label="Fotka auta"
+            accept="image/*"
+            currentUrl={form.photoUrl}
+            onUploaded={(url) => setForm({ ...form, photoUrl: url })}
+          />
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
