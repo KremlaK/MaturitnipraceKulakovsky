@@ -9,6 +9,8 @@ import AddFuelModal from '../components/AddFuelModal';
 import AddExpenseModal from '../components/AddExpenseModal';
 import { getCarStats, type CarStats } from '../api/stats';
 import CarCharts from '../components/CarCharts';
+import { getReminders, deleteReminder, toggleReminderComplete, REMINDER_TYPE_LABELS, type Reminder } from '../api/reminders';
+import AddReminderModal from '../components/AddReminderModal';
 
 function CarDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,21 +23,24 @@ function CarDetailPage() {
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showFuelModal, setShowFuelModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'service' | 'fuel' | 'expenses' | 'stats'>('service');
+  const [activeTab, setActiveTab] = useState<'service' | 'fuel' | 'expenses' | 'stats' | 'reminders'>('service');
+const [reminders, setReminders] = useState<Reminder[]>([]);
+const [showReminderModal, setShowReminderModal] = useState(false);
   const [carStats, setCarStats] = useState<CarStats | null>(null);
 
   async function loadData() {
     if (!id) return;
     setLoading(true);
     try {
-      const [carData, recordsData, fuelData, statsData, expensesData, chartStats] = await Promise.all([
-          getCar(id),
-          getServiceRecords(id),
-          getFuelRecords(id),
-          getFuelStats(id),
-          getExpenses(id),
-          getCarStats(id),
-        ]);
+      const [carData, recordsData, fuelData, statsData, expensesData, chartStats, remindersData] = await Promise.all([
+  getCar(id),
+  getServiceRecords(id),
+  getFuelRecords(id),
+  getFuelStats(id),
+  getExpenses(id),
+  getCarStats(id),
+  getReminders(id),
+]);
 
       setCar(carData);
       setRecords(recordsData);
@@ -43,6 +48,7 @@ function CarDetailPage() {
       setFuelStats(statsData);
       setExpenses(expensesData);
       setCarStats(chartStats);
+      setReminders(remindersData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -71,6 +77,25 @@ function CarDetailPage() {
     await deleteExpense(expenseId);
     loadData();
   }
+  async function handleDeleteReminder(reminderId: string) {
+  if (!confirm('Opravdu smazat tuto připomínku?')) return;
+  await deleteReminder(reminderId);
+  loadData();
+}
+
+async function handleToggleReminder(reminderId: string) {
+  await toggleReminderComplete(reminderId);
+  loadData();
+}
+
+function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolean } {
+  if (!dueDate) return { text: '', urgent: false };
+  const days = Math.ceil((new Date(dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  if (days < 0) return { text: `Po termínu (${Math.abs(days)} dní)`, urgent: true };
+  if (days === 0) return { text: 'Dnes!', urgent: true };
+  if (days <= 30) return { text: `Za ${days} dní`, urgent: true };
+  return { text: `Za ${days} dní`, urgent: false };
+}
 
   const totalServiceCost = records.reduce((sum, r) => sum + (r.price || 0), 0);
   const totalExpensesCost = expenses.reduce((sum, e) => sum + e.price, 0);
@@ -168,10 +193,82 @@ function CarDetailPage() {
           >
             📈 Statistiky
           </button>
+          <button
+  onClick={() => setActiveTab('reminders')}
+  className={`px-4 py-2 rounded font-semibold ${
+    activeTab === 'reminders' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+  }`}
+>
+  ⏰ Připomínky
+</button>
         </div>  
            {activeTab === 'stats' && carStats && (
             <CarCharts stats={carStats} />
           )}
+
+          {activeTab === 'reminders' && (
+  <>
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="text-xl font-semibold text-white">Připomínky</h2>
+      <button
+        onClick={() => setShowReminderModal(true)}
+        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+      >
+        + Přidat připomínku
+      </button>
+    </div>
+
+    {reminders.length === 0 ? (
+      <p className="text-slate-400">Zatím žádné připomínky.</p>
+    ) : (
+      <div className="space-y-3">
+        {reminders.map((reminder) => {
+          const dateInfo = formatDaysUntil(reminder.dueDate);
+          return (
+            <div
+              key={reminder.id}
+              className={`bg-slate-800 p-4 rounded-lg shadow flex justify-between items-start ${
+                reminder.completed ? 'opacity-50' : ''
+              }`}
+            >
+              <div className="flex gap-3 items-start">
+                <input
+                  type="checkbox"
+                  checked={reminder.completed}
+                  onChange={() => handleToggleReminder(reminder.id)}
+                  className="w-5 h-5 mt-1"
+                />
+                <div>
+                  <h3 className="text-white font-semibold">
+                    {reminder.title}
+                    <span className="text-slate-500 text-xs ml-2">({REMINDER_TYPE_LABELS[reminder.type]})</span>
+                  </h3>
+                  <div className="flex gap-3 text-sm mt-1">
+                    {reminder.dueDate && (
+                      <span className={dateInfo.urgent && !reminder.completed ? 'text-red-400 font-semibold' : 'text-slate-400'}>
+                        📅 {new Date(reminder.dueDate).toLocaleDateString('cs-CZ')} {!reminder.completed && `(${dateInfo.text})`}
+                      </span>
+                    )}
+                    {reminder.dueMileage && (
+                      <span className="text-slate-400">🔧 {reminder.dueMileage.toLocaleString('cs-CZ')} km</span>
+                    )}
+                  </div>
+                  {reminder.notes && <p className="text-slate-400 text-sm mt-1">{reminder.notes}</p>}
+                </div>
+              </div>
+              <button
+                onClick={() => handleDeleteReminder(reminder.id)}
+                className="text-red-400 hover:text-red-300 text-sm"
+              >
+                Smazat
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </>
+)}
 
         {/* Servisní historie */}
         {activeTab === 'service' && (
@@ -320,6 +417,9 @@ function CarDetailPage() {
       {showExpenseModal && id && (
         <AddExpenseModal carId={id} onClose={() => setShowExpenseModal(false)} onCreated={loadData} />
       )}
+      {showReminderModal && id && (
+  <AddReminderModal carId={id} onClose={() => setShowReminderModal(false)} onCreated={loadData} />
+)}
     </div>
   );
 }
