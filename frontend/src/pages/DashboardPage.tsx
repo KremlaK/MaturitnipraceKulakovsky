@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { getCars, deleteCar, type Car } from '../api/cars';
 import { getDashboard, type DashboardData } from '../api/dashboard';
 import AddCarModal from '../components/AddCarModal';
+import { getUpcomingReminders, toggleReminderComplete, REMINDER_TYPE_LABELS, type UpcomingReminder } from '../api/reminders';
 
 function formatMonth(monthKey: string) {
   const [year, month] = monthKey.split('-');
@@ -16,21 +17,28 @@ function DashboardPage() {
   const { user, logout } = useAuth();
   const [cars, setCars] = useState<Car[]>([]);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [reminders, setReminders] = useState<UpcomingReminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
+
   async function loadAll() {
-    setLoading(true);
-    try {
-      const [carsData, dashboardData] = await Promise.all([getCars(), getDashboard()]);
-      setCars(carsData);
-      setDashboard(dashboardData);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+  setLoading(true);
+  try {
+    const [carsData, dashboardData, remindersData] = await Promise.all([
+      getCars(),
+      getDashboard(),
+      getUpcomingReminders(),
+    ]);
+    setCars(carsData);
+    setDashboard(dashboardData);
+    setReminders(remindersData);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
   }
+}
 
   useEffect(() => {
     loadAll();
@@ -41,6 +49,19 @@ function DashboardPage() {
     await deleteCar(id);
     loadAll();
   }
+  async function handleToggleReminder(id: string) {
+  await toggleReminderComplete(id);
+  loadAll();
+}
+
+function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolean } {
+  if (!dueDate) return { text: '', urgent: false };
+  const days = Math.ceil((new Date(dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  if (days < 0) return { text: `Po termínu`, urgent: true };
+  if (days === 0) return { text: 'Dnes!', urgent: true };
+  if (days <= 14) return { text: `Za ${days} dní`, urgent: true };
+  return { text: `Za ${days} dní`, urgent: false };
+}
 
   const monthlyData = dashboard?.monthlyStats.map((m) => ({
     ...m,
@@ -110,6 +131,54 @@ function DashboardPage() {
                         <Bar dataKey="expenses" name="Výdaje" stackId="a" fill="#ef4444" />
                       </BarChart>
                     </ResponsiveContainer>
+                  </div>
+                  
+                )}
+                {/* Nadcházející připomínky */}
+                {reminders.length > 0 && (
+                  <div className="bg-slate-800 p-4 rounded-lg mb-6">
+                    <h3 className="text-white font-semibold mb-3">⏰ Nadcházející připomínky</h3>
+                    <div className="space-y-2">
+                      {reminders.slice(0, 5).map((reminder) => {
+                        const dateInfo = formatDaysUntil(reminder.dueDate);
+                        return (
+                          <div
+                            key={reminder.id}
+                            className="flex items-center justify-between bg-slate-700/50 rounded px-3 py-2"
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={reminder.completed}
+                                onChange={() => handleToggleReminder(reminder.id)}
+                                className="w-4 h-4"
+                              />
+                              <div>
+                                <span className="text-white text-sm font-medium">{reminder.title}</span>
+                                <span className="text-slate-500 text-xs ml-2">
+                                  ({reminder.car.make} {reminder.car.model})
+                                </span>
+                              </div>
+                            </div>
+                            {reminder.dueDate && (
+                              <span className={`text-xs font-semibold ${dateInfo.urgent ? 'text-red-400' : 'text-slate-400'}`}>
+                                {dateInfo.text}
+                              </span>
+                            )}
+                            {reminder.dueMileage && !reminder.dueDate && (
+                              <span className="text-xs text-slate-400">
+                                při {reminder.dueMileage.toLocaleString('cs-CZ')} km
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {reminders.length > 5 && (
+                      <p className="text-slate-500 text-xs mt-2">
+                        + dalších {reminders.length - 5} připomínek (viz detail konkrétního auta)
+                      </p>
+                    )}
                   </div>
                 )}
               </>
