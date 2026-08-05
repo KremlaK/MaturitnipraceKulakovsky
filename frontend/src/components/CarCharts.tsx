@@ -48,7 +48,7 @@ function CarCharts({ stats }: Props) {
               <Tooltip
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
                 labelStyle={{ color: '#fff' }}
-                formatter={(value: number) => `${value.toLocaleString('cs-CZ')} Kč`}
+                formatter={(value) => `${Number(value).toLocaleString('cs-CZ')} Kč`}
               />
               <Legend />
               <Bar dataKey="fuel" name="Palivo" stackId="a" fill="#3b82f6" />
@@ -83,7 +83,7 @@ function CarCharts({ stats }: Props) {
                 </Pie>
                 <Tooltip
                   contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
-                  formatter={(value: number) => `${value.toLocaleString('cs-CZ')} Kč`}
+                  formatter={(value) => `${Number(value).toLocaleString('cs-CZ')} Kč`}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -103,7 +103,7 @@ function CarCharts({ stats }: Props) {
                 <YAxis stroke="#94a3b8" fontSize={12} unit=" l" />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
-                  formatter={(value: number) => `${value} l/100km`}
+                  formatter={(value) => `${value} l/100km`}
                 />
                 <Line type="monotone" dataKey="consumption" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} />
               </LineChart>
