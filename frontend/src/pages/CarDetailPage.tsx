@@ -7,6 +7,8 @@ import { getExpenses, deleteExpense, EXPENSE_CATEGORY_LABELS, type Expense } fro
 import AddServiceModal from '../components/AddServiceModal';
 import AddFuelModal from '../components/AddFuelModal';
 import AddExpenseModal from '../components/AddExpenseModal';
+import { getCarStats, type CarStats } from '../api/stats';
+import CarCharts from '../components/CarCharts';
 
 function CarDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,24 +21,28 @@ function CarDetailPage() {
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showFuelModal, setShowFuelModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'service' | 'fuel' | 'expenses'>('service');
+  const [activeTab, setActiveTab] = useState<'service' | 'fuel' | 'expenses' | 'stats'>('service');
+  const [carStats, setCarStats] = useState<CarStats | null>(null);
 
   async function loadData() {
     if (!id) return;
     setLoading(true);
     try {
-      const [carData, recordsData, fuelData, statsData, expensesData] = await Promise.all([
-        getCar(id),
-        getServiceRecords(id),
-        getFuelRecords(id),
-        getFuelStats(id),
-        getExpenses(id),
-      ]);
+      const [carData, recordsData, fuelData, statsData, expensesData, chartStats] = await Promise.all([
+          getCar(id),
+          getServiceRecords(id),
+          getFuelRecords(id),
+          getFuelStats(id),
+          getExpenses(id),
+          getCarStats(id),
+        ]);
+
       setCar(carData);
       setRecords(recordsData);
       setFuelRecords(fuelData);
       setFuelStats(statsData);
       setExpenses(expensesData);
+      setCarStats(chartStats);
     } catch (err) {
       console.error(err);
     } finally {
@@ -154,7 +160,18 @@ function CarDetailPage() {
           >
             💰 Výdaje
           </button>
-        </div>
+          <button
+            onClick={() => setActiveTab('stats')}
+            className={`px-4 py-2 rounded font-semibold ${
+              activeTab === 'stats' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+            }`}
+          >
+            📈 Statistiky
+          </button>
+        </div>  
+           {activeTab === 'stats' && carStats && (
+            <CarCharts stats={carStats} />
+          )}
 
         {/* Servisní historie */}
         {activeTab === 'service' && (
