@@ -120,6 +120,7 @@ model Reminder {
   dueMileage    Int?
   emailAlert    Boolean      @default(true)
   completed     Boolean      @default(false)
+  notifiedAt    DateTime?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 

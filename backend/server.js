@@ -11,6 +11,9 @@ const expenseRoutes = require('./routes/expenses');
 const statsRoutes = require('./routes/stats');
 const dashboardRoutes = require('./routes/dashboard');
 const reminderRoutes = require('./routes/reminders');
+const cron = require('node-cron');
+const { checkReminders } = require('./jobs/reminderCheck');
+const uploadRoutes = require('./routes/upload');
 
 //Middleware
 app.use(cors());
@@ -29,6 +32,12 @@ app.use('/api/cars', statsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/cars', reminderRoutes);
 app.use('/api/reminders', reminderRoutes);
+app.use('/api/upload', uploadRoutes);
 app.listen(PORT, () => {
      console.log(`Server běží na http://localhost:${PORT}`);
 })
+
+// Spouštěj kontrolu připomínek každý den v 8:00 ráno
+cron.schedule('0 8 * * *', () => {
+  checkReminders();
+});

@@ -35,4 +35,25 @@ async function sendPasswordResetEmail(toEmail, token) {
   });
 }
 
-module.exports = { sendVerificationEmail, sendPasswordResetEmail };
+async function sendReminderEmail(toEmail, reminders) {
+  const itemsHtml = reminders.map((r) => {
+    const carName = `${r.car.make} ${r.car.model}`;
+    const dueInfo = r.dueDate
+      ? `Termín: ${new Date(r.dueDate).toLocaleDateString('cs-CZ')}`
+      : `Při nájezdu: ${r.dueMileage?.toLocaleString('cs-CZ')} km`;
+    return `<li><strong>${r.title}</strong> (${carName}) — ${dueInfo}</li>`;
+  }).join('');
+
+  await resend.emails.send({
+    from: 'onboarding@resend.dev',
+    to: toEmail,
+    subject: `⏰ Blížící se připomínky - AutoApp`,
+    html: `
+      <h2>Máš blížící se připomínky</h2>
+      <ul>${itemsHtml}</ul>
+      <p>Přihlas se do AutoApp pro víc detailů.</p>
+    `,
+  });
+}
+
+module.exports = { sendVerificationEmail, sendPasswordResetEmail, sendReminderEmail };

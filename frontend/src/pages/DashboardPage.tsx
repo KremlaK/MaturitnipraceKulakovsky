@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { getCars, deleteCar, type Car } from '../api/cars';
 import { getDashboard, type DashboardData } from '../api/dashboard';
 import AddCarModal from '../components/AddCarModal';
-import { getUpcomingReminders, toggleReminderComplete, REMINDER_TYPE_LABELS, type UpcomingReminder } from '../api/reminders';
+import { getUpcomingReminders, toggleReminderComplete, type UpcomingReminder } from '../api/reminders';
 
 function formatMonth(monthKey: string) {
   const [year, month] = monthKey.split('-');
