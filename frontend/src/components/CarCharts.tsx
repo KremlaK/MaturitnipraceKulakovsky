@@ -5,7 +5,7 @@ import {
 import type { CarStats } from '../api/stats';
 import { EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from '../api/expenses';
 
-const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+const COLORS = ['#ffcc00', '#ff5500', '#e6342a', '#00443a', '#8b8b8b', '#c9a227', '#7a3b12', '#4a4a4a'];
 
 function formatMonth(monthKey: string) {
   const [year, month] = monthKey.split('-');
@@ -35,25 +35,25 @@ function CarCharts({ stats }: Props) {
   return (
     <div className="space-y-6">
       {/* Měsíční náklady */}
-      <div className="bg-slate-800 p-4 rounded-lg">
-        <h3 className="text-white font-semibold mb-4">Náklady podle měsíců</h3>
+      <div className="bg-panel border border-panel-border rounded-xl p-4">
+        <h3 className="text-white font-display font-semibold mb-4 text-sm uppercase tracking-wider">Náklady podle měsíců</h3>
         {monthlyData.length === 0 ? (
-          <p className="text-slate-400 text-sm">Zatím nejsou žádná data.</p>
+          <p className="text-slate-500 text-sm font-mono-gauge">Zatím nejsou žádná data.</p>
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="monthLabel" stroke="#94a3b8" fontSize={12} />
-              <YAxis stroke="#94a3b8" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" />
+              <XAxis dataKey="monthLabel" stroke="#6b6b6b" fontSize={11} fontFamily="JetBrains Mono" />
+              <YAxis stroke="#6b6b6b" fontSize={11} fontFamily="JetBrains Mono" />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: 8, fontFamily: 'JetBrains Mono' }}
                 labelStyle={{ color: '#fff' }}
                 formatter={(value) => `${Number(value).toLocaleString('cs-CZ')} Kč`}
               />
-              <Legend />
-              <Bar dataKey="fuel" name="Palivo" stackId="a" fill="#3b82f6" />
-              <Bar dataKey="service" name="Servis" stackId="a" fill="#f59e0b" />
-              <Bar dataKey="expenses" name="Výdaje" stackId="a" fill="#ef4444" />
+              <Legend wrapperStyle={{ fontFamily: 'JetBrains Mono', fontSize: 12 }} />
+              <Bar dataKey="fuel" name="Palivo" stackId="a" fill="#ffcc00" />
+              <Bar dataKey="service" name="Servis" stackId="a" fill="#ff5500" />
+              <Bar dataKey="expenses" name="Výdaje" stackId="a" fill="#e6342a" />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -61,10 +61,10 @@ function CarCharts({ stats }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Náklady podle kategorií */}
-        <div className="bg-slate-800 p-4 rounded-lg">
-          <h3 className="text-white font-semibold mb-4">Náklady podle kategorií</h3>
+        <div className="bg-panel border border-panel-border rounded-xl p-4">
+          <h3 className="text-white font-display font-semibold mb-4 text-sm uppercase tracking-wider">Podle kategorií</h3>
           {categoryData.length === 0 ? (
-            <p className="text-slate-400 text-sm">Zatím nejsou žádná data.</p>
+            <p className="text-slate-500 text-sm font-mono-gauge">Zatím nejsou žádná data.</p>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
@@ -82,7 +82,7 @@ function CarCharts({ stats }: Props) {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: 8, fontFamily: 'JetBrains Mono' }}
                   formatter={(value) => `${Number(value).toLocaleString('cs-CZ')} Kč`}
                 />
               </PieChart>
@@ -91,21 +91,21 @@ function CarCharts({ stats }: Props) {
         </div>
 
         {/* Vývoj spotřeby */}
-        <div className="bg-slate-800 p-4 rounded-lg">
-          <h3 className="text-white font-semibold mb-4">Vývoj spotřeby</h3>
+        <div className="bg-panel border border-panel-border rounded-xl p-4">
+          <h3 className="text-white font-display font-semibold mb-4 text-sm uppercase tracking-wider">Vývoj spotřeby</h3>
           {stats.consumptionTrend.length === 0 ? (
-            <p className="text-slate-400 text-sm">Potřeba alespoň 2 tankování do plna.</p>
+            <p className="text-slate-500 text-sm font-mono-gauge">Potřeba alespoň 2 tankování do plna.</p>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={stats.consumptionTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={12} unit=" l" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" />
+                <XAxis dataKey="date" stroke="#6b6b6b" fontSize={10} fontFamily="JetBrains Mono" />
+                <YAxis stroke="#6b6b6b" fontSize={11} unit=" l" fontFamily="JetBrains Mono" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: 8, fontFamily: 'JetBrains Mono' }}
                   formatter={(value) => `${value} l/100km`}
                 />
-                <Line type="monotone" dataKey="consumption" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} />
+                <Line type="monotone" dataKey="consumption" stroke="#ffcc00" strokeWidth={2} dot={{ fill: '#ffcc00' }} />
               </LineChart>
             </ResponsiveContainer>
           )}

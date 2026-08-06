@@ -33,13 +33,13 @@ function FileUpload({ label, accept = 'image/*,application/pdf', currentUrl, onU
 
   return (
     <div>
-      <label className="block text-slate-300 text-sm mb-1">{label}</label>
+      <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">{label}</label>
 
       {currentUrl && isImage && (
-        <img src={currentUrl} alt="Náhled" className="w-full h-32 object-cover rounded mb-2" />
+        <img src={currentUrl} alt="Náhled" className="w-full h-32 object-cover rounded mb-2 border border-panel-border" />
       )}
       {currentUrl && !isImage && (
-        <a href={currentUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm block mb-2">
+        <a href={currentUrl} target="_blank" rel="noopener noreferrer" className="text-gauge-yellow hover:underline text-sm block mb-2 font-mono-gauge">
           📄 Zobrazit nahraný soubor
         </a>
       )}
@@ -49,11 +49,11 @@ function FileUpload({ label, accept = 'image/*,application/pdf', currentUrl, onU
         accept={accept}
         onChange={handleChange}
         disabled={uploading}
-        className="w-full text-sm text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-blue-600 file:text-white file:cursor-pointer hover:file:bg-blue-700 disabled:opacity-50"
+        className="w-full text-sm text-slate-400 font-mono-gauge file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-gauge-yellow file:text-black file:font-bold file:cursor-pointer hover:file:brightness-110 disabled:opacity-50"
       />
 
-      {uploading && <p className="text-slate-400 text-xs mt-1">Nahrávám...</p>}
-      {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+      {uploading && <p className="text-slate-500 text-xs mt-1 font-mono-gauge">Nahrávám...</p>}
+      {error && <p className="text-warning-red text-xs mt-1 font-mono-gauge">{error}</p>}
     </div>
   );
 }
