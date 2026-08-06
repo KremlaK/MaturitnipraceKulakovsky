@@ -7,6 +7,8 @@ export interface ServiceRecord {
   price: number | null;
   date: string;
   mileage: number | null;
+  invoiceUrl: string | null;
+  photoUrl: string | null;
 }
 
 export interface ServiceRecordInput {
@@ -15,6 +17,8 @@ export interface ServiceRecordInput {
   description?: string;
   price?: number;
   mileage?: number;
+  invoiceUrl?: string;
+  photoUrl?: string;
 }
 
 export async function getServiceRecords(carId: string): Promise<ServiceRecord[]> {

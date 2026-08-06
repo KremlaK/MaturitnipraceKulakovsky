@@ -145,7 +145,6 @@ function CarDetailPage() {
           </button>
         </div>
 
-        {/* Karta auta - "techničák" */}
         <div className="bg-panel border border-panel-border rounded-xl overflow-hidden mb-6">
           {car.photoUrl && (
             <img
@@ -186,7 +185,6 @@ function CarDetailPage() {
           </div>
         </div>
 
-        {/* Přístrojová deska - statistiky */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <div className="bg-panel border border-panel-border rounded-lg p-3 text-center">
             <p className="text-slate-500 text-xs uppercase tracking-wider">Spotřeba</p>
@@ -216,7 +214,6 @@ function CarDetailPage() {
           </div>
         </div>
 
-        {/* Přepínače - jako tlačítka na palubní desce */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
           {TABS.map((tab) => (
             <button
@@ -233,7 +230,6 @@ function CarDetailPage() {
           ))}
         </div>
 
-        {/* Servisní historie */}
         {activeTab === 'service' && (
           <>
             <div className="flex justify-between items-center mb-4">
@@ -261,6 +257,18 @@ function CarDetailPage() {
                       {record.description && (
                         <p className="text-slate-400 text-sm mt-1">{record.description}</p>
                       )}
+                      <div className="flex gap-3 mt-2">
+                        {record.invoiceUrl && (
+                          <a href={record.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-gauge-yellow hover:underline text-xs font-mono-gauge">
+                            📎 Faktura
+                          </a>
+                        )}
+                        {record.photoUrl && (
+                          <a href={record.photoUrl} target="_blank" rel="noopener noreferrer" className="text-gauge-yellow hover:underline text-xs font-mono-gauge">
+                            📷 Foto
+                          </a>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right">
                       {record.price && (
@@ -280,7 +288,6 @@ function CarDetailPage() {
           </>
         )}
 
-        {/* Tankování */}
         {activeTab === 'fuel' && (
           <>
             <div className="flex justify-between items-center mb-4">
@@ -326,7 +333,6 @@ function CarDetailPage() {
           </>
         )}
 
-        {/* Výdaje */}
         {activeTab === 'expenses' && (
           <>
             <div className="flex justify-between items-center mb-4">
@@ -370,12 +376,10 @@ function CarDetailPage() {
           </>
         )}
 
-        {/* Statistiky */}
         {activeTab === 'stats' && carStats && (
           <CarCharts stats={carStats} />
         )}
 
-        {/* Připomínky */}
         {activeTab === 'reminders' && (
           <>
             <div className="flex justify-between items-center mb-4">

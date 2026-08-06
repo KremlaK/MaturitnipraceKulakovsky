@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { createServiceRecord, type ServiceRecordInput } from '../api/service';
+import FileUpload from './FileUpload';
 
 const SERVICE_TYPES = [
   'Výměna oleje', 'STK', 'Emise', 'Pneumatiky', 'Brzdy', 'Filtry',
@@ -101,6 +102,20 @@ function AddServiceModal({ carId, onClose, onCreated }: Props) {
             />
           </div>
 
+              <FileUpload
+            label="Faktura (PDF nebo foto)"
+            accept="image/*,application/pdf"
+            currentUrl={form.invoiceUrl}
+            onUploaded={(url) => setForm({ ...form, invoiceUrl: url })}
+          />
+
+          <FileUpload
+            label="Fotka opravy"
+            accept="image/*"
+            currentUrl={form.photoUrl}
+            onUploaded={(url) => setForm({ ...form, photoUrl: url })}
+          />
+            
           {error && (
             <p className="text-warning-red text-sm font-mono-gauge border border-warning-red/30 bg-warning-red/10 rounded px-3 py-2">
               {error}
