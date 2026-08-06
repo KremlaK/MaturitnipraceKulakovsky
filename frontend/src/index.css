@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+@theme {
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-asphalt: #121212;
+  --color-asphalt-light: #1c1c1c;
+  --color-panel: #1a1a1a;
+  --color-panel-border: #2e2e2e;
+
+  --color-gauge-yellow: #ffcc00;
+  --color-gauge-orange: #ff5500;
+  --color-racing-green: #00443a;
+  --color-warning-red: #e6342a;
+}
+
+body {
+  background-color: var(--color-asphalt);
+  font-family: var(--font-display);
+}
+
+.font-mono-gauge {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
