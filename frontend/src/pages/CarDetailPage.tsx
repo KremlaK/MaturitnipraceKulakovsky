@@ -6,14 +6,17 @@ import { getFuelRecords, deleteFuelRecord, getFuelStats, type FuelRecord, type F
 import { getExpenses, deleteExpense, EXPENSE_CATEGORY_LABELS, type Expense } from '../api/expenses';
 import { getCarStats, type CarStats } from '../api/stats';
 import { getReminders, deleteReminder, toggleReminderComplete, REMINDER_TYPE_LABELS, type Reminder } from '../api/reminders';
+import { getPhotos, deletePhoto, type Photo } from '../api/photos';
 import AddServiceModal from '../components/AddServiceModal';
 import AddFuelModal from '../components/AddFuelModal';
 import AddExpenseModal from '../components/AddExpenseModal';
 import AddReminderModal from '../components/AddReminderModal';
+import AddPhotoModal from '../components/AddPhotoModal';
 import EditCarModal from '../components/EditCarModal';
 import CarCharts from '../components/CarCharts';
+import PhotoGallery from '../components/PhotoGallery';
 
-type Tab = 'service' | 'fuel' | 'expenses' | 'stats' | 'reminders';
+type Tab = 'service' | 'fuel' | 'expenses' | 'stats' | 'reminders' | 'gallery';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'service', label: 'Servis', icon: '🔧' },
@@ -21,6 +24,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'expenses', label: 'Výdaje', icon: '💰' },
   { id: 'stats', label: 'Statistiky', icon: '📈' },
   { id: 'reminders', label: 'Kontrolky', icon: '⏰' },
+  { id: 'gallery', label: 'Galerie', icon: '🖼️' },
 ];
 
 function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolean } {
@@ -41,6 +45,7 @@ function CarDetailPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [carStats, setCarStats] = useState<CarStats | null>(null);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('service');
 
@@ -49,12 +54,13 @@ function CarDetailPage() {
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
 
   async function loadData() {
     if (!id) return;
     setLoading(true);
     try {
-      const [carData, recordsData, fuelData, statsData, expensesData, chartStats, remindersData] = await Promise.all([
+      const [carData, recordsData, fuelData, statsData, expensesData, chartStats, remindersData, photosData] = await Promise.all([
         getCar(id),
         getServiceRecords(id),
         getFuelRecords(id),
@@ -62,6 +68,7 @@ function CarDetailPage() {
         getExpenses(id),
         getCarStats(id),
         getReminders(id),
+        getPhotos(id),
       ]);
       setCar(carData);
       setRecords(recordsData);
@@ -70,6 +77,7 @@ function CarDetailPage() {
       setExpenses(expensesData);
       setCarStats(chartStats);
       setReminders(remindersData);
+      setPhotos(photosData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -107,6 +115,12 @@ function CarDetailPage() {
 
   async function handleToggleReminder(reminderId: string) {
     await toggleReminderComplete(reminderId);
+    loadData();
+  }
+
+  async function handleDeletePhoto(photoId: string) {
+    if (!confirm('Opravdu smazat tuto fotku?')) return;
+    await deletePhoto(photoId);
     loadData();
   }
 
@@ -443,6 +457,21 @@ function CarDetailPage() {
             )}
           </>
         )}
+
+        {activeTab === 'gallery' && (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-white font-display font-semibold uppercase tracking-wider text-sm">Galerie</h2>
+              <button
+                onClick={() => setShowPhotoModal(true)}
+                className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
+              >
+                + Přidat fotku
+              </button>
+            </div>
+            <PhotoGallery photos={photos} onDelete={handleDeletePhoto} />
+          </>
+        )}
       </div>
 
       {showServiceModal && id && (
@@ -456,6 +485,9 @@ function CarDetailPage() {
       )}
       {showReminderModal && id && (
         <AddReminderModal carId={id} onClose={() => setShowReminderModal(false)} onCreated={loadData} />
+      )}
+      {showPhotoModal && id && (
+        <AddPhotoModal carId={id} onClose={() => setShowPhotoModal(false)} onCreated={loadData} />
       )}
       {showEditModal && car && (
         <EditCarModal car={car} onClose={() => setShowEditModal(false)} onUpdated={loadData} />
