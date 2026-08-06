@@ -30,10 +30,11 @@ function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center px-4">
-        <div className="bg-slate-800 p-8 rounded-lg shadow-xl w-full max-w-md text-center">
-          <h1 className="text-2xl font-bold text-white mb-2">Registrace úspěšná! 🎉</h1>
-          <p className="text-slate-300">
+      <div className="min-h-screen bg-asphalt flex items-center justify-center px-4">
+        <div className="bg-panel border border-panel-border rounded-xl p-8 w-full max-w-md text-center">
+          <p className="text-gauge-yellow text-4xl mb-3">🏁</p>
+          <h1 className="text-xl font-display font-bold text-white mb-2">Motor nastartován!</h1>
+          <p className="text-slate-400 font-mono-gauge text-sm">
             Zkontroluj svůj e-mail pro ověření účtu. Za chvíli tě přesměrujeme na přihlášení...
           </p>
         </div>
@@ -42,61 +43,72 @@ function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center px-4">
-      <div className="bg-slate-800 p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h1 className="text-2xl font-bold text-white mb-6">Registrace</h1>
+    <div className="min-h-screen bg-asphalt flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <p className="text-gauge-yellow font-mono-gauge text-xs uppercase tracking-[0.3em] mb-1">Vítej v garáži</p>
+          <h1 className="text-3xl font-display font-bold text-white">AutoApp</h1>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-slate-300 mb-1">Jméno</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-blue-500"
-            />
-          </div>
+        <div className="bg-panel border border-panel-border rounded-xl p-8">
+          <h2 className="text-white font-display font-semibold text-lg mb-6 uppercase tracking-wider">Registrace</h2>
 
-          <div>
-            <label className="block text-slate-300 mb-1">E-mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-blue-500"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Jméno</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              />
+            </div>
 
-          <div>
-            <label className="block text-slate-300 mb-1">Heslo (min. 8 znaků)</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full px-3 py-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-blue-500"
-            />
-          </div>
+            <div>
+              <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">E-mail</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              />
+            </div>
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+            <div>
+              <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Heslo (min. 8 znaků)</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold disabled:opacity-50"
-          >
-            {loading ? 'Registruji...' : 'Zaregistrovat se'}
-          </button>
-        </form>
+            {error && (
+              <p className="text-warning-red text-sm font-mono-gauge border border-warning-red/30 bg-warning-red/10 rounded px-3 py-2">
+                {error}
+              </p>
+            )}
 
-        <p className="text-slate-400 text-sm mt-4 text-center">
-          Už máš účet?{' '}
-          <Link to="/login" className="text-blue-400 hover:underline">
-            Přihlas se
-          </Link>
-        </p>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gauge-yellow hover:brightness-110 text-black py-3 rounded font-mono-gauge font-bold uppercase tracking-wider disabled:opacity-50 transition"
+            >
+              {loading ? 'Registruji...' : '🏁 Vjet do garáže'}
+            </button>
+          </form>
+
+          <p className="text-slate-500 text-sm mt-6 text-center font-mono-gauge">
+            Už máš účet?{' '}
+            <Link to="/login" className="text-gauge-yellow hover:underline">
+              Přihlas se
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
