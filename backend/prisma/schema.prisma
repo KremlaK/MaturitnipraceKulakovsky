@@ -44,6 +44,7 @@ model Car {
   fuelRecords    FuelRecord[]
   expenses       Expense[]
   reminders      Reminder[]
+  photos         Photo[]
 }
 
 model ServiceRecord {
@@ -126,4 +127,22 @@ model Reminder {
 
   carId         String
   car           Car          @relation(fields: [carId], references: [id], onDelete: Cascade)
+}
+
+enum PhotoCategory {
+  AUTO
+  OPRAVA
+  TUNING
+  OSTATNI
+}
+
+model Photo {
+  id        String        @id @default(uuid())
+  url       String
+  category  PhotoCategory @default(AUTO)
+  caption   String?
+  createdAt DateTime      @default(now())
+
+  carId     String
+  car       Car           @relation(fields: [carId], references: [id], onDelete: Cascade)
 }
