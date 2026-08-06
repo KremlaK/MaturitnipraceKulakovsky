@@ -4,14 +4,33 @@ import { getCar, type Car } from '../api/cars';
 import { getServiceRecords, deleteServiceRecord, type ServiceRecord } from '../api/service';
 import { getFuelRecords, deleteFuelRecord, getFuelStats, type FuelRecord, type FuelStats } from '../api/fuel';
 import { getExpenses, deleteExpense, EXPENSE_CATEGORY_LABELS, type Expense } from '../api/expenses';
+import { getCarStats, type CarStats } from '../api/stats';
+import { getReminders, deleteReminder, toggleReminderComplete, REMINDER_TYPE_LABELS, type Reminder } from '../api/reminders';
 import AddServiceModal from '../components/AddServiceModal';
 import AddFuelModal from '../components/AddFuelModal';
 import AddExpenseModal from '../components/AddExpenseModal';
-import { getCarStats, type CarStats } from '../api/stats';
-import CarCharts from '../components/CarCharts';
-import { getReminders, deleteReminder, toggleReminderComplete, REMINDER_TYPE_LABELS, type Reminder } from '../api/reminders';
 import AddReminderModal from '../components/AddReminderModal';
 import EditCarModal from '../components/EditCarModal';
+import CarCharts from '../components/CarCharts';
+
+type Tab = 'service' | 'fuel' | 'expenses' | 'stats' | 'reminders';
+
+const TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: 'service', label: 'Servis', icon: '🔧' },
+  { id: 'fuel', label: 'Tankování', icon: '⛽' },
+  { id: 'expenses', label: 'Výdaje', icon: '💰' },
+  { id: 'stats', label: 'Statistiky', icon: '📈' },
+  { id: 'reminders', label: 'Kontrolky', icon: '⏰' },
+];
+
+function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolean } {
+  if (!dueDate) return { text: '', urgent: false };
+  const days = Math.ceil((new Date(dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  if (days < 0) return { text: `Po termínu`, urgent: true };
+  if (days === 0) return { text: 'Dnes!', urgent: true };
+  if (days <= 30) return { text: `Za ${days} dní`, urgent: true };
+  return { text: `Za ${days} dní`, urgent: false };
+}
 
 function CarDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,30 +39,30 @@ function CarDetailPage() {
   const [fuelRecords, setFuelRecords] = useState<FuelRecord[]>([]);
   const [fuelStats, setFuelStats] = useState<FuelStats | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [carStats, setCarStats] = useState<CarStats | null>(null);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>('service');
+
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showFuelModal, setShowFuelModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'service' | 'fuel' | 'expenses' | 'stats' | 'reminders'>('service');
-const [reminders, setReminders] = useState<Reminder[]>([]);
-const [showReminderModal, setShowReminderModal] = useState(false);
-  const [carStats, setCarStats] = useState<CarStats | null>(null);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   async function loadData() {
     if (!id) return;
     setLoading(true);
     try {
       const [carData, recordsData, fuelData, statsData, expensesData, chartStats, remindersData] = await Promise.all([
-  getCar(id),
-  getServiceRecords(id),
-  getFuelRecords(id),
-  getFuelStats(id),
-  getExpenses(id),
-  getCarStats(id),
-  getReminders(id),
-]);
-
+        getCar(id),
+        getServiceRecords(id),
+        getFuelRecords(id),
+        getFuelStats(id),
+        getExpenses(id),
+        getCarStats(id),
+        getReminders(id),
+      ]);
       setCar(carData);
       setRecords(recordsData);
       setFuelRecords(fuelData);
@@ -79,25 +98,17 @@ const [showReminderModal, setShowReminderModal] = useState(false);
     await deleteExpense(expenseId);
     loadData();
   }
+
   async function handleDeleteReminder(reminderId: string) {
-  if (!confirm('Opravdu smazat tuto připomínku?')) return;
-  await deleteReminder(reminderId);
-  loadData();
-}
+    if (!confirm('Opravdu smazat tuto připomínku?')) return;
+    await deleteReminder(reminderId);
+    loadData();
+  }
 
-async function handleToggleReminder(reminderId: string) {
-  await toggleReminderComplete(reminderId);
-  loadData();
-}
-
-function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolean } {
-  if (!dueDate) return { text: '', urgent: false };
-  const days = Math.ceil((new Date(dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  if (days < 0) return { text: `Po termínu (${Math.abs(days)} dní)`, urgent: true };
-  if (days === 0) return { text: 'Dnes!', urgent: true };
-  if (days <= 30) return { text: `Za ${days} dní`, urgent: true };
-  return { text: `Za ${days} dní`, urgent: false };
-}
+  async function handleToggleReminder(reminderId: string) {
+    await toggleReminderComplete(reminderId);
+    loadData();
+  }
 
   const totalServiceCost = records.reduce((sum, r) => sum + (r.price || 0), 0);
   const totalExpensesCost = expenses.reduce((sum, e) => sum + e.price, 0);
@@ -105,37 +116,38 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <p className="text-white">Načítám...</p>
+      <div className="min-h-screen bg-asphalt flex items-center justify-center">
+        <p className="text-slate-500 font-mono-gauge">Načítám...</p>
       </div>
     );
   }
 
   if (!car) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <p className="text-white">Auto nenalezeno.</p>
+      <div className="min-h-screen bg-asphalt flex items-center justify-center">
+        <p className="text-white font-mono-gauge">Auto nenalezeno.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 p-8">
+    <div className="min-h-screen bg-asphalt p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
-       <div className="flex justify-between items-center">
-          <Link to="/dashboard" className="text-blue-400 hover:underline text-sm">
-            ← Zpět na dashboard
+        <div className="flex justify-between items-center mb-4">
+          <Link to="/dashboard" className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge">
+            ← Zpět do garáže
           </Link>
           <button
             onClick={() => setShowEditModal(true)}
-            className="text-slate-400 hover:text-white text-sm"
+            className="text-slate-500 hover:text-white text-sm font-mono-gauge"
           >
-            ✏️ Upravit auto
+            ✏️ Upravit
           </button>
         </div>
 
-        <div className="bg-slate-800 rounded-lg shadow-xl mt-4 mb-6 overflow-hidden">
-        {car.photoUrl && (
+        {/* Karta auta - "techničák" */}
+        <div className="bg-panel border border-panel-border rounded-xl overflow-hidden mb-6">
+          {car.photoUrl && (
             <img
               src={car.photoUrl}
               alt={`${car.make} ${car.model}`}
@@ -143,174 +155,106 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
             />
           )}
           <div className="p-6">
-          <h1 className="text-2xl font-bold text-white">{car.make} {car.model}</h1>
-          <p className="text-slate-400 mt-1">
-            {car.year && `Rok: ${car.year}`} {car.licensePlate && `• SPZ: ${car.licensePlate}`}
-          </p>
-          <p className="text-slate-400">
-            Aktuální nájezd: {car.mileage?.toLocaleString('cs-CZ')} km
-          </p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-gauge-yellow text-xs uppercase tracking-widest font-mono-gauge mb-1">
+                  Technický průkaz
+                </p>
+                <h1 className="text-2xl font-display font-bold text-white">{car.make} {car.model}</h1>
+              </div>
+              {car.licensePlate && (
+                <div className="border-2 border-panel-border rounded px-3 py-1.5 font-mono-gauge text-white font-bold tracking-wider">
+                  {car.licensePlate}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-panel-border">
+              <div>
+                <p className="text-slate-500 text-xs uppercase tracking-wider">Rok</p>
+                <p className="font-mono-gauge text-white">{car.year || '—'}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-xs uppercase tracking-wider">Nájezd</p>
+                <p className="font-mono-gauge text-white">{car.mileage?.toLocaleString('cs-CZ')} km</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-xs uppercase tracking-wider">VIN</p>
+                <p className="font-mono-gauge text-white text-sm">{car.vin || '—'}</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Statistiky */}
+        {/* Přístrojová deska - statistiky */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="bg-slate-800 p-3 rounded-lg text-center">
-            <p className="text-slate-400 text-xs">Průměrná spotřeba</p>
-            <p className="text-white font-bold text-lg">
+          <div className="bg-panel border border-panel-border rounded-lg p-3 text-center">
+            <p className="text-slate-500 text-xs uppercase tracking-wider">Spotřeba</p>
+            <p className="font-mono-gauge text-gauge-yellow font-bold text-lg">
               {fuelStats?.averageConsumption !== null && fuelStats?.averageConsumption !== undefined
-                ? `${fuelStats.averageConsumption} l/100km` : '—'}
+                ? `${fuelStats.averageConsumption}` : '—'}
+              <span className="text-xs text-slate-500 ml-1">l/100</span>
             </p>
           </div>
-          <div className="bg-slate-800 p-3 rounded-lg text-center">
-            <p className="text-slate-400 text-xs">Palivo celkem</p>
-            <p className="text-white font-bold text-lg">{(fuelStats?.totalSpent || 0).toLocaleString('cs-CZ')} Kč</p>
-          </div>
-          <div className="bg-slate-800 p-3 rounded-lg text-center">
-            <p className="text-slate-400 text-xs">Servis + výdaje</p>
-            <p className="text-white font-bold text-lg">
-              {(totalServiceCost + totalExpensesCost).toLocaleString('cs-CZ')} Kč
+          <div className="bg-panel border border-panel-border rounded-lg p-3 text-center">
+            <p className="text-slate-500 text-xs uppercase tracking-wider">Palivo</p>
+            <p className="font-mono-gauge text-white font-bold text-lg">
+              {(fuelStats?.totalSpent || 0).toLocaleString('cs-CZ')}
             </p>
           </div>
-          <div className="bg-slate-800 p-3 rounded-lg text-center border border-blue-600">
-            <p className="text-slate-400 text-xs">Celkem za auto</p>
-            <p className="text-white font-bold text-lg">{totalOverallCost.toLocaleString('cs-CZ')} Kč</p>
+          <div className="bg-panel border border-panel-border rounded-lg p-3 text-center">
+            <p className="text-slate-500 text-xs uppercase tracking-wider">Servis+Výd.</p>
+            <p className="font-mono-gauge text-white font-bold text-lg">
+              {(totalServiceCost + totalExpensesCost).toLocaleString('cs-CZ')}
+            </p>
+          </div>
+          <div className="bg-panel border border-gauge-yellow/40 rounded-lg p-3 text-center">
+            <p className="text-slate-500 text-xs uppercase tracking-wider">Celkem</p>
+            <p className="font-mono-gauge text-gauge-orange font-bold text-lg">
+              {totalOverallCost.toLocaleString('cs-CZ')}
+            </p>
           </div>
         </div>
 
-        {/* Přepínač záložek */}
-        <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => setActiveTab('service')}
-            className={`px-4 py-2 rounded font-semibold ${
-              activeTab === 'service' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
-            }`}
-          >
-            🔧 Servis
-          </button>
-          <button
-            onClick={() => setActiveTab('fuel')}
-            className={`px-4 py-2 rounded font-semibold ${
-              activeTab === 'fuel' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
-            }`}
-          >
-            ⛽ Tankování
-          </button>
-          <button
-            onClick={() => setActiveTab('expenses')}
-            className={`px-4 py-2 rounded font-semibold ${
-              activeTab === 'expenses' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
-            }`}
-          >
-            💰 Výdaje
-          </button>
-          <button
-            onClick={() => setActiveTab('stats')}
-            className={`px-4 py-2 rounded font-semibold ${
-              activeTab === 'stats' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
-            }`}
-          >
-            📈 Statistiky
-          </button>
-          <button
-  onClick={() => setActiveTab('reminders')}
-  className={`px-4 py-2 rounded font-semibold ${
-    activeTab === 'reminders' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
-  }`}
->
-  ⏰ Připomínky
-</button>
-        </div>  
-           {activeTab === 'stats' && carStats && (
-            <CarCharts stats={carStats} />
-          )}
-
-          {activeTab === 'reminders' && (
-  <>
-    <div className="flex justify-between items-center mb-4">
-      <h2 className="text-xl font-semibold text-white">Připomínky</h2>
-      <button
-        onClick={() => setShowReminderModal(true)}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
-      >
-        + Přidat připomínku
-      </button>
-    </div>
-
-    {reminders.length === 0 ? (
-      <p className="text-slate-400">Zatím žádné připomínky.</p>
-    ) : (
-      <div className="space-y-3">
-        {reminders.map((reminder) => {
-          const dateInfo = formatDaysUntil(reminder.dueDate);
-          return (
-            <div
-              key={reminder.id}
-              className={`bg-slate-800 p-4 rounded-lg shadow flex justify-between items-start ${
-                reminder.completed ? 'opacity-50' : ''
+        {/* Přepínače - jako tlačítka na palubní desce */}
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded font-mono-gauge text-sm font-semibold uppercase tracking-wide whitespace-nowrap border transition ${
+                activeTab === tab.id
+                  ? 'bg-gauge-yellow text-black border-gauge-yellow'
+                  : 'bg-panel text-slate-400 border-panel-border hover:border-slate-500'
               }`}
             >
-              <div className="flex gap-3 items-start">
-                <input
-                  type="checkbox"
-                  checked={reminder.completed}
-                  onChange={() => handleToggleReminder(reminder.id)}
-                  className="w-5 h-5 mt-1"
-                />
-                <div>
-                  <h3 className="text-white font-semibold">
-                    {reminder.title}
-                    <span className="text-slate-500 text-xs ml-2">({REMINDER_TYPE_LABELS[reminder.type]})</span>
-                  </h3>
-                  <div className="flex gap-3 text-sm mt-1">
-                    {reminder.dueDate && (
-                      <span className={dateInfo.urgent && !reminder.completed ? 'text-red-400 font-semibold' : 'text-slate-400'}>
-                        📅 {new Date(reminder.dueDate).toLocaleDateString('cs-CZ')} {!reminder.completed && `(${dateInfo.text})`}
-                      </span>
-                    )}
-                    {reminder.dueMileage && (
-                      <span className="text-slate-400">🔧 {reminder.dueMileage.toLocaleString('cs-CZ')} km</span>
-                    )}
-                  </div>
-                  {reminder.notes && <p className="text-slate-400 text-sm mt-1">{reminder.notes}</p>}
-                </div>
-              </div>
-              <button
-                onClick={() => handleDeleteReminder(reminder.id)}
-                className="text-red-400 hover:text-red-300 text-sm"
-              >
-                Smazat
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    )}
-  </>
-)}
+              {tab.icon} {tab.label}
+            </button>
+          ))}
+        </div>
 
         {/* Servisní historie */}
         {activeTab === 'service' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">Servisní historie</h2>
+              <h2 className="text-white font-display font-semibold uppercase tracking-wider text-sm">Servisní knížka</h2>
               <button
                 onClick={() => setShowServiceModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+                className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
               >
-                + Přidat záznam
+                + Přidat
               </button>
             </div>
 
             {records.length === 0 ? (
-              <p className="text-slate-400">Zatím žádné servisní záznamy.</p>
+              <p className="text-slate-500 font-mono-gauge text-sm">Zatím žádné servisní záznamy.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {records.map((record) => (
-                  <div key={record.id} className="bg-slate-800 p-4 rounded-lg shadow flex justify-between items-start">
+                  <div key={record.id} className="bg-panel border border-panel-border rounded-lg p-4 flex justify-between items-start">
                     <div>
-                      <h3 className="text-white font-semibold">{record.type}</h3>
-                      <p className="text-slate-400 text-sm">
+                      <h3 className="text-white font-display font-semibold">{record.type}</h3>
+                      <p className="text-slate-500 text-xs font-mono-gauge mt-1">
                         {new Date(record.date).toLocaleDateString('cs-CZ')}
                         {record.mileage && ` • ${record.mileage.toLocaleString('cs-CZ')} km`}
                       </p>
@@ -320,11 +264,11 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
                     </div>
                     <div className="text-right">
                       {record.price && (
-                        <p className="text-white font-semibold">{record.price.toLocaleString('cs-CZ')} Kč</p>
+                        <p className="text-white font-mono-gauge font-semibold">{record.price.toLocaleString('cs-CZ')} Kč</p>
                       )}
                       <button
                         onClick={() => handleDeleteRecord(record.id)}
-                        className="text-red-400 hover:text-red-300 text-sm mt-1"
+                        className="text-slate-600 hover:text-warning-red text-xs mt-1"
                       >
                         Smazat
                       </button>
@@ -340,37 +284,37 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
         {activeTab === 'fuel' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">Tankování</h2>
+              <h2 className="text-white font-display font-semibold uppercase tracking-wider text-sm">Tankování</h2>
               <button
                 onClick={() => setShowFuelModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+                className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
               >
-                + Přidat tankování
+                + Přidat
               </button>
             </div>
 
             {fuelRecords.length === 0 ? (
-              <p className="text-slate-400">Zatím žádné záznamy tankování.</p>
+              <p className="text-slate-500 font-mono-gauge text-sm">Zatím žádné záznamy tankování.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {fuelRecords.map((record) => (
-                  <div key={record.id} className="bg-slate-800 p-4 rounded-lg shadow flex justify-between items-start">
+                  <div key={record.id} className="bg-panel border border-panel-border rounded-lg p-4 flex justify-between items-start">
                     <div>
-                      <h3 className="text-white font-semibold">
-                        {record.fuelType} {!record.fullTank && '(částečné)'}
+                      <h3 className="text-white font-display font-semibold">
+                        {record.fuelType} {!record.fullTank && <span className="text-slate-500 text-xs">(částečné)</span>}
                       </h3>
-                      <p className="text-slate-400 text-sm">
+                      <p className="text-slate-500 text-xs font-mono-gauge mt-1">
                         {new Date(record.date).toLocaleDateString('cs-CZ')} • {record.mileage.toLocaleString('cs-CZ')} km
                       </p>
-                      <p className="text-slate-400 text-sm">
+                      <p className="text-slate-500 text-xs font-mono-gauge">
                         {record.liters} l × {record.pricePerLiter} Kč/l
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-semibold">{record.totalPrice.toLocaleString('cs-CZ')} Kč</p>
+                      <p className="text-white font-mono-gauge font-semibold">{record.totalPrice.toLocaleString('cs-CZ')} Kč</p>
                       <button
                         onClick={() => handleDeleteFuel(record.id)}
-                        className="text-red-400 hover:text-red-300 text-sm mt-1"
+                        className="text-slate-600 hover:text-warning-red text-xs mt-1"
                       >
                         Smazat
                       </button>
@@ -386,24 +330,24 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
         {activeTab === 'expenses' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">Výdaje</h2>
+              <h2 className="text-white font-display font-semibold uppercase tracking-wider text-sm">Výdaje</h2>
               <button
                 onClick={() => setShowExpenseModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+                className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
               >
-                + Přidat výdaj
+                + Přidat
               </button>
             </div>
 
             {expenses.length === 0 ? (
-              <p className="text-slate-400">Zatím žádné výdaje.</p>
+              <p className="text-slate-500 font-mono-gauge text-sm">Zatím žádné výdaje.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {expenses.map((expense) => (
-                  <div key={expense.id} className="bg-slate-800 p-4 rounded-lg shadow flex justify-between items-start">
+                  <div key={expense.id} className="bg-panel border border-panel-border rounded-lg p-4 flex justify-between items-start">
                     <div>
-                      <h3 className="text-white font-semibold">{EXPENSE_CATEGORY_LABELS[expense.category]}</h3>
-                      <p className="text-slate-400 text-sm">
+                      <h3 className="text-white font-display font-semibold">{EXPENSE_CATEGORY_LABELS[expense.category]}</h3>
+                      <p className="text-slate-500 text-xs font-mono-gauge mt-1">
                         {new Date(expense.date).toLocaleDateString('cs-CZ')}
                       </p>
                       {expense.description && (
@@ -411,16 +355,86 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-semibold">{expense.price.toLocaleString('cs-CZ')} Kč</p>
+                      <p className="text-white font-mono-gauge font-semibold">{expense.price.toLocaleString('cs-CZ')} Kč</p>
                       <button
                         onClick={() => handleDeleteExpense(expense.id)}
-                        className="text-red-400 hover:text-red-300 text-sm mt-1"
+                        className="text-slate-600 hover:text-warning-red text-xs mt-1"
                       >
                         Smazat
                       </button>
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Statistiky */}
+        {activeTab === 'stats' && carStats && (
+          <CarCharts stats={carStats} />
+        )}
+
+        {/* Připomínky */}
+        {activeTab === 'reminders' && (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-white font-display font-semibold uppercase tracking-wider text-sm">Kontrolky</h2>
+              <button
+                onClick={() => setShowReminderModal(true)}
+                className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
+              >
+                + Přidat
+              </button>
+            </div>
+
+            {reminders.length === 0 ? (
+              <p className="text-slate-500 font-mono-gauge text-sm">Zatím žádné připomínky.</p>
+            ) : (
+              <div className="space-y-2">
+                {reminders.map((reminder) => {
+                  const dateInfo = formatDaysUntil(reminder.dueDate);
+                  return (
+                    <div
+                      key={reminder.id}
+                      className={`bg-panel border border-panel-border rounded-lg p-4 flex justify-between items-start ${
+                        reminder.completed ? 'opacity-50' : ''
+                      }`}
+                    >
+                      <div className="flex gap-3 items-start">
+                        <input
+                          type="checkbox"
+                          checked={reminder.completed}
+                          onChange={() => handleToggleReminder(reminder.id)}
+                          className="w-5 h-5 mt-1 accent-gauge-yellow"
+                        />
+                        <div>
+                          <h3 className="text-white font-display font-semibold">
+                            {reminder.title}
+                            <span className="text-slate-600 text-xs ml-2 font-mono-gauge">({REMINDER_TYPE_LABELS[reminder.type]})</span>
+                          </h3>
+                          <div className="flex gap-3 text-xs font-mono-gauge mt-1">
+                            {reminder.dueDate && (
+                              <span className={dateInfo.urgent && !reminder.completed ? 'text-warning-red font-semibold' : 'text-slate-500'}>
+                                📅 {new Date(reminder.dueDate).toLocaleDateString('cs-CZ')} {!reminder.completed && `(${dateInfo.text})`}
+                              </span>
+                            )}
+                            {reminder.dueMileage && (
+                              <span className="text-slate-500">🔧 {reminder.dueMileage.toLocaleString('cs-CZ')} km</span>
+                            )}
+                          </div>
+                          {reminder.notes && <p className="text-slate-400 text-sm mt-1">{reminder.notes}</p>}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteReminder(reminder.id)}
+                        className="text-slate-600 hover:text-warning-red text-xs"
+                      >
+                        Smazat
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </>
@@ -437,11 +451,11 @@ function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolea
         <AddExpenseModal carId={id} onClose={() => setShowExpenseModal(false)} onCreated={loadData} />
       )}
       {showReminderModal && id && (
-  <AddReminderModal carId={id} onClose={() => setShowReminderModal(false)} onCreated={loadData} />
-)}
-{showEditModal && car && (
-  <EditCarModal car={car} onClose={() => setShowEditModal(false)} onUpdated={loadData} />
-)}
+        <AddReminderModal carId={id} onClose={() => setShowReminderModal(false)} onCreated={loadData} />
+      )}
+      {showEditModal && car && (
+        <EditCarModal car={car} onClose={() => setShowEditModal(false)} onUpdated={loadData} />
+      )}
     </div>
   );
 }
