@@ -7,6 +7,11 @@ import { getUpcomingReminders, toggleReminderComplete, type UpcomingReminder } f
 import AddCarModal from '../components/AddCarModal';
 import Gauge from '../components/Gauge';
 
+const ROLE_LABELS: Record<string, string> = {
+  SPOLUMAJITEL: 'Spolumajitel',
+  SERVIS: 'Servis',
+};
+
 function DashboardPage() {
   const { user, logout } = useAuth();
   const [cars, setCars] = useState<Car[]>([]);
@@ -57,7 +62,6 @@ function DashboardPage() {
     return { text: `Za ${days} dní`, urgent: false };
   }
 
-  // Odhad "rozpočtu" pro gauge = průměr posledních měsíců × 1.3 (jen orientační strop)
   const monthlyValues = dashboard?.monthlyStats.map((m) => m.total) || [];
   const avgMonthly = monthlyValues.length > 0
     ? monthlyValues.reduce((a, b) => a + b, 0) / monthlyValues.length
@@ -68,7 +72,6 @@ function DashboardPage() {
   return (
     <div className="min-h-screen bg-asphalt p-6 md:p-8">
       <div className="max-w-5xl mx-auto">
-        {/* Hlavička */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <p className="text-slate-500 text-xs uppercase tracking-widest font-mono-gauge">Palubní deska</p>
@@ -130,7 +133,6 @@ function DashboardPage() {
               </div>
             )}
 
-            {/* Připomínky */}
             {reminders.length > 0 && (
               <div className="bg-panel border border-panel-border rounded-xl p-4 mb-6">
                 <h3 className="text-gauge-yellow font-display font-semibold mb-3 text-sm uppercase tracking-wider">
@@ -175,7 +177,6 @@ function DashboardPage() {
               </div>
             )}
 
-            {/* Garáž - seznam aut */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-white font-display font-semibold text-lg uppercase tracking-wider">🏁 Garáž</h2>
               <button
@@ -192,6 +193,7 @@ function DashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {cars.map((car) => {
                   const carSummary = dashboard?.cars.find((c) => c.id === car.id);
+                  const isOwner = car.isOwner !== false;
                   return (
                     <div key={car.id} className="bg-panel border border-panel-border rounded-xl overflow-hidden hover:border-gauge-yellow/50 transition-colors">
                       {car.photoUrl && (
@@ -204,12 +206,19 @@ function DashboardPage() {
                       <div className="p-4">
                         <div className="flex justify-between items-start">
                           <div>
-                            <Link
-                              to={`/cars/${car.id}`}
-                              className="text-lg font-display font-semibold text-white hover:text-gauge-yellow"
-                            >
-                              {car.make} {car.model}
-                            </Link>
+                            <div className="flex items-center gap-2">
+                              <Link
+                                to={`/cars/${car.id}`}
+                                className="text-lg font-display font-semibold text-white hover:text-gauge-yellow"
+                              >
+                                {car.make} {car.model}
+                              </Link>
+                              {!isOwner && car.myRole && (
+                                <span className="text-[10px] font-mono-gauge text-slate-400 border border-panel-border rounded px-1.5 py-0.5 uppercase">
+                                  {ROLE_LABELS[car.myRole] || car.myRole}
+                                </span>
+                              )}
+                            </div>
                             <p className="text-slate-500 text-xs font-mono-gauge mt-1">
                               {car.licensePlate && `${car.licensePlate} • `}
                               {car.mileage?.toLocaleString('cs-CZ')} km
@@ -220,12 +229,14 @@ function DashboardPage() {
                               </p>
                             )}
                           </div>
-                          <button
-                            onClick={() => handleDelete(car.id)}
-                            className="text-slate-600 hover:text-warning-red text-xs"
-                          >
-                            Smazat
-                          </button>
+                          {isOwner && (
+                            <button
+                              onClick={() => handleDelete(car.id)}
+                              className="text-slate-600 hover:text-warning-red text-xs"
+                            >
+                              Smazat
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

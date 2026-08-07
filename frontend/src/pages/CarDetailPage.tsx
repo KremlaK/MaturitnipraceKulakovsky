@@ -13,6 +13,7 @@ import AddExpenseModal from '../components/AddExpenseModal';
 import AddReminderModal from '../components/AddReminderModal';
 import AddPhotoModal from '../components/AddPhotoModal';
 import EditCarModal from '../components/EditCarModal';
+import ShareCarModal from '../components/ShareCarModal';
 import CarCharts from '../components/CarCharts';
 import PhotoGallery from '../components/PhotoGallery';
 
@@ -55,6 +56,7 @@ function CarDetailPage() {
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   async function loadData() {
     if (!id) return;
@@ -161,7 +163,12 @@ function CarDetailPage() {
           <Link to="/dashboard" className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge">
             ← Zpět do garáže
           </Link>
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-3 items-center flex-wrap justify-end">
+            {car.isOwner === false && car.myRole && (
+              <span className="text-slate-500 text-xs font-mono-gauge border border-panel-border rounded px-2 py-1">
+                Sdíleno jako: {car.myRole === 'SPOLUMAJITEL' ? 'Spolumajitel' : 'Servis'}
+              </span>
+            )}
             <button
               onClick={() => handleExport('pdf')}
               className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge"
@@ -174,12 +181,22 @@ function CarDetailPage() {
             >
               📊 Excel
             </button>
-            <button
-              onClick={() => setShowEditModal(true)}
-              className="text-slate-500 hover:text-white text-sm font-mono-gauge"
-            >
-              ✏️ Upravit
-            </button>
+            {car.isOwner !== false && (
+              <>
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge"
+                >
+                  👥 Sdílet
+                </button>
+                <button
+                  onClick={() => setShowEditModal(true)}
+                  className="text-slate-500 hover:text-white text-sm font-mono-gauge"
+                >
+                  ✏️ Upravit
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -515,6 +532,9 @@ function CarDetailPage() {
       )}
       {showEditModal && car && (
         <EditCarModal car={car} onClose={() => setShowEditModal(false)} onUpdated={loadData} />
+      )}
+      {showShareModal && id && (
+        <ShareCarModal carId={id} onClose={() => setShowShareModal(false)} />
       )}
     </div>
   );

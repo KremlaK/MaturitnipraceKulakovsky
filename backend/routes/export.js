@@ -4,14 +4,11 @@ const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
+const { getAccessibleCar } = require('../utils/carAccess');
 
 const router = express.Router();
 
 router.use(authMiddleware);
-
-async function getOwnedCar(carId, userId) {
-  return prisma.car.findFirst({ where: { id: carId, ownerId: userId } });
-}
 
 function safeFilename(str) {
   return str
@@ -23,7 +20,7 @@ function safeFilename(str) {
 // GET /api/cars/:carId/export/pdf - servisní knížka jako PDF
 router.get('/:carId/export/pdf', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
@@ -99,7 +96,7 @@ router.get('/:carId/export/pdf', async (req, res) => {
 // GET /api/cars/:carId/export/excel - výdaje jako Excel
 router.get('/:carId/export/excel', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }

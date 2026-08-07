@@ -1,5 +1,7 @@
 import api from './axios';
 
+export type MyRole = 'MAJITEL' | 'SPOLUMAJITEL' | 'SERVIS';
+
 export interface Car {
   id: string;
   vin: string | null;
@@ -11,6 +13,13 @@ export interface Car {
   notes: string | null;
   photoUrl: string | null;
   createdAt: string;
+  isOwner?: boolean;
+  myRole?: MyRole | null;
+  owner?: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
 }
 
 export interface CarInput {
@@ -42,7 +51,7 @@ export async function getCar(id: string): Promise<Car> {
   const res = await api.get(`/cars/${id}`);
   return res.data;
 }
- 
+
 export async function updateCar(id: string, data: Partial<CarInput>): Promise<Car> {
   const res = await api.put(`/cars/${id}`, data);
   return res.data;

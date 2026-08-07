@@ -1,19 +1,16 @@
 const express = require('express');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
+const { getAccessibleCar } = require('../utils/carAccess');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 
-async function getOwnedCar(carId, userId) {
-  return prisma.car.findFirst({ where: { id: carId, ownerId: userId } });
-}
-
 // GET /api/cars/:carId/stats - statistiky pro grafy (měsíční a kategorie)
 router.get('/:carId/stats', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
@@ -24,11 +21,10 @@ router.get('/:carId/stats', async (req, res) => {
       prisma.expense.findMany({ where: { carId: req.params.carId } }),
     ]);
 
-    // --- Výdaje podle měsíců (posledních 12 měsíců) ---
     const monthlyMap = {};
 
     function addToMonth(date, field, amount) {
-      const monthKey = new Date(date).toISOString().slice(0, 7); // "2026-08"
+      const monthKey = new Date(date).toISOString().slice(0, 7);
       if (!monthlyMap[monthKey]) {
         monthlyMap[monthKey] = { month: monthKey, service: 0, fuel: 0, expenses: 0 };
       }
@@ -43,7 +39,6 @@ router.get('/:carId/stats', async (req, res) => {
       .sort((a, b) => a.month.localeCompare(b.month))
       .map((m) => ({ ...m, total: m.service + m.fuel + m.expenses }));
 
-    // --- Výdaje podle kategorií ---
     const categoryMap = {};
 
     function addToCategory(name, amount) {
@@ -58,7 +53,6 @@ router.get('/:carId/stats', async (req, res) => {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
 
-    // --- Vývoj spotřeby v čase (jen plné nádrže) ---
     const fullTankSorted = fuelRecords
       .filter((r) => r.fullTank)
       .sort((a, b) => a.mileage - b.mileage);
