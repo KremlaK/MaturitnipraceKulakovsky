@@ -35,7 +35,7 @@ router.post('/:carId/service', async (req, res) => {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
 
-    const { type, description, price, date, mileage, invoiceUrl, photoUrl } = req.body;
+    const { type, description, price, date, mileage, invoiceUrl, photoUrl, latitude, longitude, placeName } = req.body;
 
     if (!type || !date) {
       return res.status(400).json({ error: 'Typ opravy a datum jsou povinné.' });
@@ -50,6 +50,9 @@ router.post('/:carId/service', async (req, res) => {
         mileage: mileage || null,
         invoiceUrl: invoiceUrl || null,
         photoUrl: photoUrl || null,
+        latitude: latitude || null,
+        longitude: longitude || null,
+        placeName: placeName || null,
         carId: req.params.carId,
       },
     });
@@ -85,7 +88,7 @@ router.put('/service/:id', async (req, res) => {
       return res.status(404).json({ error: 'Záznam nenalezen.' });
     }
 
-    const { type, description, price, date, mileage, invoiceUrl, photoUrl } = req.body;
+    const { type, description, price, date, mileage, invoiceUrl, photoUrl, latitude, longitude, placeName } = req.body;
 
     const updated = await prisma.serviceRecord.update({
       where: { id: req.params.id },
@@ -97,6 +100,9 @@ router.put('/service/:id', async (req, res) => {
         mileage,
         invoiceUrl,
         photoUrl,
+        latitude,
+        longitude,
+        placeName,
       },
     });
 

@@ -35,7 +35,7 @@ router.post('/:carId/fuel', async (req, res) => {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
 
-    const { date, liters, pricePerLiter, mileage, fuelType, fullTank } = req.body;
+    const { date, liters, pricePerLiter, mileage, fuelType, fullTank, latitude, longitude, placeName } = req.body;
 
     if (!date || !liters || !pricePerLiter || !mileage || !fuelType) {
       return res.status(400).json({ error: 'Vyplň všechna povinná pole.' });
@@ -52,6 +52,9 @@ router.post('/:carId/fuel', async (req, res) => {
         mileage,
         fuelType,
         fullTank: fullTank !== undefined ? fullTank : true,
+        latitude: latitude || null,
+        longitude: longitude || null,
+        placeName: placeName || null,
         carId: req.params.carId,
       },
     });

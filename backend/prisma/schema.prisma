@@ -58,6 +58,9 @@ model ServiceRecord {
   mileage     Int?
   invoiceUrl  String?
   photoUrl    String?
+  latitude    Float?
+  longitude   Float?
+  placeName   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -74,6 +77,9 @@ model FuelRecord {
   mileage        Int
   fuelType       String
   fullTank       Boolean  @default(true)
+  latitude       Float?
+  longitude      Float?
+  placeName      String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

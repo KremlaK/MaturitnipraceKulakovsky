@@ -18,6 +18,7 @@ const photoRoutes = require('./routes/photos');
 const exportRoutes = require('./routes/export');
 const shareRoutes = require('./routes/shares');
 const vinRoutes = require('./routes/vin');
+const mapRoutes = require('./routes/map');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,6 +46,7 @@ app.use('/api/cars', exportRoutes);
 app.use('/api/cars', shareRoutes);
 app.use('/api/shares', shareRoutes);
 app.use('/api/vin', vinRoutes);
+app.use('/api/map', mapRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server běží na http://localhost:${PORT}`);
