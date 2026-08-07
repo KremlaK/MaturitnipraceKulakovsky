@@ -15,7 +15,18 @@ export interface MapPoint {
   };
 }
 
+export interface PlaceSearchResult {
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
 export async function getMapLocations(): Promise<MapPoint[]> {
   const res = await api.get('/map/locations');
+  return res.data;
+}
+
+export async function searchPlaces(query: string): Promise<PlaceSearchResult[]> {
+  const res = await api.get('/map/search', { params: { q: query } });
   return res.data;
 }

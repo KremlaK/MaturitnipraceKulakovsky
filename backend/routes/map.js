@@ -64,4 +64,40 @@ router.get('/locations', async (req, res) => {
   }
 });
 
+// GET /api/map/search?q=... - vyhledání míst přes Nominatim (OpenStreetMap)
+router.get('/search', async (req, res) => {
+  try {
+    const query = (req.query.q || '').toString().trim();
+
+    if (query.length < 2) {
+      return res.json([]);
+    }
+
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=6&addressdetails=1`;
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'AutoApp/1.0 (osobni projekt, kontakt: kontakt@example.com)',
+      },
+    });
+
+    if (!response.ok) {
+      return res.status(502).json({ error: 'Vyhledávání míst momentálně nefunguje.' });
+    }
+
+    const data = await response.json();
+
+    const results = data.map((item) => ({
+      name: item.display_name,
+      latitude: parseFloat(item.lat),
+      longitude: parseFloat(item.lon),
+    }));
+
+    res.json(results);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Vyhledávání selhalo.' });
+  }
+});
+
 module.exports = router;

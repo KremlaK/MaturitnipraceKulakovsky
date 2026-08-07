@@ -9,6 +9,9 @@ export interface FuelRecord {
   mileage: number;
   fuelType: string;
   fullTank: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  placeName: string | null;
 }
 
 export interface FuelRecordInput {
@@ -18,6 +21,9 @@ export interface FuelRecordInput {
   mileage: number;
   fuelType: string;
   fullTank: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  placeName?: string;
 }
 
 export interface FuelStats {

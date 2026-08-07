@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { createFuelRecord, type FuelRecordInput } from '../api/fuel';
+import LocationPicker from './LocationPicker';
 
 const FUEL_TYPES = ['Natural 95', 'Natural 98', 'Nafta', 'LPG', 'CNG', 'Elektřina'];
 
@@ -17,6 +18,8 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
     mileage: 0,
     fuelType: 'Natural 95',
     fullTank: true,
+    latitude: null,
+    longitude: null,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,6 +27,10 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
   const totalPrice = form.liters && form.pricePerLiter
     ? (form.liters * form.pricePerLiter).toFixed(2)
     : '0.00';
+
+  function handleLocationChange(lat: number, lng: number, placeName?: string) {
+    setForm({ ...form, latitude: lat, longitude: lng, placeName: placeName ?? form.placeName });
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -43,7 +50,7 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
-      <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md">
+      <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <h2 className="text-white font-display font-semibold text-lg mb-4 uppercase tracking-wider">Tankování</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -129,6 +136,12 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
           <p className="text-slate-600 text-xs -mt-2 font-mono-gauge">
             Pro přesný výpočet spotřeby je potřeba tankovat vždy do plna.
           </p>
+
+          <LocationPicker
+            latitude={form.latitude ?? null}
+            longitude={form.longitude ?? null}
+            onChange={handleLocationChange}
+          />
 
           {error && (
             <p className="text-warning-red text-sm font-mono-gauge border border-warning-red/30 bg-warning-red/10 rounded px-3 py-2">
