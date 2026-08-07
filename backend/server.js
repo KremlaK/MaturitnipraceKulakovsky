@@ -15,6 +15,7 @@ const cron = require('node-cron');
 const { checkReminders } = require('./jobs/reminderCheck');
 const uploadRoutes = require('./routes/upload');
 const photoRoutes = require('./routes/photos');
+const exportRoutes = require('./routes/export');
 
 
 //Middleware
@@ -37,6 +38,7 @@ app.use('/api/reminders', reminderRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/cars', photoRoutes);
 app.use('/api/photos', photoRoutes);
+app.use('/api/cars', exportRoutes);
 app.listen(PORT, () => {
      console.log(`Server běží na http://localhost:${PORT}`);
 })
