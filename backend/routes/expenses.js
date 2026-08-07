@@ -1,19 +1,16 @@
 const express = require('express');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
+const { getAccessibleCar } = require('../utils/carAccess');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 
-async function getOwnedCar(carId, userId) {
-  return prisma.car.findFirst({ where: { id: carId, ownerId: userId } });
-}
-
 // GET /api/cars/:carId/expenses - všechny výdaje k danému autu
 router.get('/:carId/expenses', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
@@ -33,7 +30,7 @@ router.get('/:carId/expenses', async (req, res) => {
 // POST /api/cars/:carId/expenses - přidání výdaje
 router.post('/:carId/expenses', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
@@ -69,10 +66,15 @@ router.delete('/expenses/:id', async (req, res) => {
   try {
     const expense = await prisma.expense.findUnique({
       where: { id: req.params.id },
-      include: { car: true },
+      include: { car: { include: { shares: true } } },
     });
 
-    if (!expense || expense.car.ownerId !== req.userId) {
+    if (!expense) {
+      return res.status(404).json({ error: 'Výdaj nenalezen.' });
+    }
+
+    const hasAccess = expense.car.ownerId === req.userId || expense.car.shares.some((s) => s.userId === req.userId);
+    if (!hasAccess) {
       return res.status(404).json({ error: 'Výdaj nenalezen.' });
     }
 

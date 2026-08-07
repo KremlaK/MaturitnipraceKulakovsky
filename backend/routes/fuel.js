@@ -1,19 +1,16 @@
 const express = require('express');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
+const { getAccessibleCar } = require('../utils/carAccess');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 
-async function getOwnedCar(carId, userId) {
-  return prisma.car.findFirst({ where: { id: carId, ownerId: userId } });
-}
-
 // GET /api/cars/:carId/fuel - všechny záznamy tankování k danému autu
 router.get('/:carId/fuel', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
@@ -33,7 +30,7 @@ router.get('/:carId/fuel', async (req, res) => {
 // POST /api/cars/:carId/fuel - přidání záznamu tankování
 router.post('/:carId/fuel', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
@@ -59,7 +56,6 @@ router.post('/:carId/fuel', async (req, res) => {
       },
     });
 
-    // Aktualizuj nájezd auta, pokud je nový stav vyšší
     if (car.mileage === null || mileage > car.mileage) {
       await prisma.car.update({
         where: { id: car.id },
@@ -79,10 +75,15 @@ router.delete('/fuel/:id', async (req, res) => {
   try {
     const record = await prisma.fuelRecord.findUnique({
       where: { id: req.params.id },
-      include: { car: true },
+      include: { car: { include: { shares: true } } },
     });
 
-    if (!record || record.car.ownerId !== req.userId) {
+    if (!record) {
+      return res.status(404).json({ error: 'Záznam nenalezen.' });
+    }
+
+    const hasAccess = record.car.ownerId === req.userId || record.car.shares.some((s) => s.userId === req.userId);
+    if (!hasAccess) {
       return res.status(404).json({ error: 'Záznam nenalezen.' });
     }
 
@@ -98,12 +99,11 @@ router.delete('/fuel/:id', async (req, res) => {
 // GET /api/cars/:carId/fuel-stats - statistiky spotřeby
 router.get('/:carId/fuel-stats', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
 
-    // Vezmeme všechny záznamy seřazené podle nájezdu (vzestupně)
     const records = await prisma.fuelRecord.findMany({
       where: { carId: req.params.carId },
       orderBy: { mileage: 'asc' },
@@ -119,7 +119,6 @@ router.get('/:carId/fuel-stats', async (req, res) => {
       });
     }
 
-    // Spotřeba se počítá jen mezi plnými nádržemi
     const fullTankRecords = records.filter((r) => r.fullTank);
 
     let totalConsumptionLiters = 0;
@@ -131,8 +130,6 @@ router.get('/:carId/fuel-stats', async (req, res) => {
       const km = curr.mileage - prev.mileage;
 
       if (km > 0) {
-        // Litry spotřebované na tenhle úsek = litry natankované PŘI aktuálním tankování
-        // (protože to doplnilo nádrž po ujetí "km" kilometrů)
         totalConsumptionLiters += curr.liters;
         totalConsumptionKm += km;
       }
@@ -152,12 +149,12 @@ router.get('/:carId/fuel-stats', async (req, res) => {
     const pricePerKm = totalKm > 0 ? Math.round((totalSpent / totalKm) * 100) / 100 : null;
 
     res.json({
-      averageConsumption,     // l/100km
-      averagePricePerLiter,   // Kč/l
-      pricePerKm,             // Kč/km
-      totalSpent,             // celková útrata za palivo
-      totalLiters,            // celkem natankováno litrů
-      totalKm,                // celkem ujeto km (mezi prvním a posledním záznamem)
+      averageConsumption,
+      averagePricePerLiter,
+      pricePerKm,
+      totalSpent,
+      totalLiters,
+      totalKm,
     });
   } catch (error) {
     console.error(error);

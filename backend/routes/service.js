@@ -1,20 +1,16 @@
 const express = require('express');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
+const { getAccessibleCar } = require('../utils/carAccess');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 
-// Pomocná funkce - ověří, že auto patří přihlášenému uživateli
-async function getOwnedCar(carId, userId) {
-  return prisma.car.findFirst({ where: { id: carId, ownerId: userId } });
-}
-
 // GET /api/cars/:carId/service - všechny servisní záznamy k danému autu
 router.get('/:carId/service', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
@@ -34,7 +30,7 @@ router.get('/:carId/service', async (req, res) => {
 // POST /api/cars/:carId/service - přidání servisního záznamu
 router.post('/:carId/service', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
@@ -58,7 +54,6 @@ router.post('/:carId/service', async (req, res) => {
       },
     });
 
-    // Pokud je zadaný nový stav tachometru vyšší než aktuální, aktualizuj i auto
     if (mileage && car.mileage !== null && mileage > car.mileage) {
       await prisma.car.update({
         where: { id: car.id },
@@ -78,10 +73,15 @@ router.put('/service/:id', async (req, res) => {
   try {
     const record = await prisma.serviceRecord.findUnique({
       where: { id: req.params.id },
-      include: { car: true },
+      include: { car: { include: { shares: true } } },
     });
 
-    if (!record || record.car.ownerId !== req.userId) {
+    if (!record) {
+      return res.status(404).json({ error: 'Záznam nenalezen.' });
+    }
+
+    const hasAccess = record.car.ownerId === req.userId || record.car.shares.some((s) => s.userId === req.userId);
+    if (!hasAccess) {
       return res.status(404).json({ error: 'Záznam nenalezen.' });
     }
 
@@ -112,10 +112,15 @@ router.delete('/service/:id', async (req, res) => {
   try {
     const record = await prisma.serviceRecord.findUnique({
       where: { id: req.params.id },
-      include: { car: true },
+      include: { car: { include: { shares: true } } },
     });
 
-    if (!record || record.car.ownerId !== req.userId) {
+    if (!record) {
+      return res.status(404).json({ error: 'Záznam nenalezen.' });
+    }
+
+    const hasAccess = record.car.ownerId === req.userId || record.car.shares.some((s) => s.userId === req.userId);
+    if (!hasAccess) {
       return res.status(404).json({ error: 'Záznam nenalezen.' });
     }
 

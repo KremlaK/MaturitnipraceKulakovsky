@@ -1,19 +1,16 @@
 const express = require('express');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
+const { getAccessibleCar } = require('../utils/carAccess');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 
-async function getOwnedCar(carId, userId) {
-  return prisma.car.findFirst({ where: { id: carId, ownerId: userId } });
-}
-
 // GET /api/cars/:carId/reminders - připomínky k danému autu
 router.get('/:carId/reminders', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
@@ -30,13 +27,18 @@ router.get('/:carId/reminders', async (req, res) => {
   }
 });
 
-// GET /api/reminders/upcoming - všechny nadcházející připomínky přes všechna auta uživatele
+// GET /api/reminders/upcoming - všechny nadcházející připomínky přes všechna dostupná auta uživatele
 router.get('/upcoming', async (req, res) => {
   try {
     const reminders = await prisma.reminder.findMany({
       where: {
         completed: false,
-        car: { ownerId: req.userId },
+        car: {
+          OR: [
+            { ownerId: req.userId },
+            { shares: { some: { userId: req.userId } } },
+          ],
+        },
       },
       include: { car: { select: { id: true, make: true, model: true, licensePlate: true } } },
       orderBy: { dueDate: 'asc' },
@@ -52,7 +54,7 @@ router.get('/upcoming', async (req, res) => {
 // POST /api/cars/:carId/reminders - přidání připomínky
 router.post('/:carId/reminders', async (req, res) => {
   try {
-    const car = await getOwnedCar(req.params.carId, req.userId);
+    const car = await getAccessibleCar(req.params.carId, req.userId);
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
@@ -91,10 +93,15 @@ router.put('/:id/complete', async (req, res) => {
   try {
     const reminder = await prisma.reminder.findUnique({
       where: { id: req.params.id },
-      include: { car: true },
+      include: { car: { include: { shares: true } } },
     });
 
-    if (!reminder || reminder.car.ownerId !== req.userId) {
+    if (!reminder) {
+      return res.status(404).json({ error: 'Připomínka nenalezena.' });
+    }
+
+    const hasAccess = reminder.car.ownerId === req.userId || reminder.car.shares.some((s) => s.userId === req.userId);
+    if (!hasAccess) {
       return res.status(404).json({ error: 'Připomínka nenalezena.' });
     }
 
@@ -115,10 +122,15 @@ router.delete('/:id', async (req, res) => {
   try {
     const reminder = await prisma.reminder.findUnique({
       where: { id: req.params.id },
-      include: { car: true },
+      include: { car: { include: { shares: true } } },
     });
 
-    if (!reminder || reminder.car.ownerId !== req.userId) {
+    if (!reminder) {
+      return res.status(404).json({ error: 'Připomínka nenalezena.' });
+    }
+
+    const hasAccess = reminder.car.ownerId === req.userId || reminder.car.shares.some((s) => s.userId === req.userId);
+    if (!hasAccess) {
       return res.status(404).json({ error: 'Připomínka nenalezena.' });
     }
 
