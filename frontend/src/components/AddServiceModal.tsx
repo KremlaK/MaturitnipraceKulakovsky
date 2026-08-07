@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { createServiceRecord, type ServiceRecordInput } from '../api/service';
 import FileUpload from './FileUpload';
+import LocationPicker from './LocationPicker';
 
 const SERVICE_TYPES = [
   'Výměna oleje', 'STK', 'Emise', 'Pneumatiky', 'Brzdy', 'Filtry',
@@ -17,9 +18,15 @@ function AddServiceModal({ carId, onClose, onCreated }: Props) {
   const [form, setForm] = useState<ServiceRecordInput>({
     type: '',
     date: new Date().toISOString().split('T')[0],
+    latitude: null,
+    longitude: null,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  function handleLocationChange(lat: number, lng: number, placeName?: string) {
+    setForm({ ...form, latitude: lat, longitude: lng, placeName: placeName ?? form.placeName });
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -39,7 +46,7 @@ function AddServiceModal({ carId, onClose, onCreated }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
-      <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md">
+      <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <h2 className="text-white font-display font-semibold text-lg mb-4 uppercase tracking-wider">Servisní záznam</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -102,7 +109,7 @@ function AddServiceModal({ carId, onClose, onCreated }: Props) {
             />
           </div>
 
-              <FileUpload
+          <FileUpload
             label="Faktura (PDF nebo foto)"
             accept="image/*,application/pdf"
             currentUrl={form.invoiceUrl}
@@ -115,7 +122,13 @@ function AddServiceModal({ carId, onClose, onCreated }: Props) {
             currentUrl={form.photoUrl}
             onUploaded={(url) => setForm({ ...form, photoUrl: url })}
           />
-            
+
+          <LocationPicker
+            latitude={form.latitude ?? null}
+            longitude={form.longitude ?? null}
+            onChange={handleLocationChange}
+          />
+
           {error && (
             <p className="text-warning-red text-sm font-mono-gauge border border-warning-red/30 bg-warning-red/10 rounded px-3 py-2">
               {error}

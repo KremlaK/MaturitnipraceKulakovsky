@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { getCars, deleteCar, type Car } from '../api/cars';
 import { getDashboard, type DashboardData } from '../api/dashboard';
 import { getUpcomingReminders, toggleReminderComplete, type UpcomingReminder } from '../api/reminders';
@@ -14,6 +15,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 function DashboardPage() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [cars, setCars] = useState<Car[]>([]);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [reminders, setReminders] = useState<UpcomingReminder[]>([]);
@@ -74,21 +76,28 @@ function DashboardPage() {
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <p className="text-slate-500 text-xs uppercase tracking-widest font-mono-gauge">Palubní deska</p>
-            <h1 className="text-2xl font-bold text-white font-display">
+            <p className="text-ink-muted text-xs uppercase tracking-widest font-mono-gauge">Palubní deska</p>
+            <h1 className="text-2xl font-bold text-ink font-display">
               {user?.name || user?.email}
             </h1>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={toggleTheme}
+              className="border border-panel-border text-ink-muted hover:text-gauge-yellow hover:border-gauge-yellow px-4 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+              title="Přepnout motiv"
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             <Link
               to="/map"
-              className="border border-panel-border text-slate-400 hover:text-gauge-yellow hover:border-gauge-yellow px-4 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+              className="border border-panel-border text-ink-muted hover:text-gauge-yellow hover:border-gauge-yellow px-4 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
             >
               🗺️ Mapa
             </Link>
             <button
               onClick={logout}
-              className="border border-panel-border text-slate-400 hover:text-white hover:border-slate-500 px-4 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+              className="border border-panel-border text-ink-muted hover:text-ink hover:border-ink-muted px-4 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
             >
               Odhlásit
             </button>
@@ -96,7 +105,7 @@ function DashboardPage() {
         </div>
 
         {loading ? (
-          <p className="text-slate-500 font-mono-gauge">Načítám...</p>
+          <p className="text-ink-muted font-mono-gauge">Načítám...</p>
         ) : (
           <>
             {dashboard && dashboard.carCount > 0 && (
@@ -106,36 +115,36 @@ function DashboardPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-slate-500 text-xs uppercase tracking-wider">Aut celkem</p>
+                      <p className="text-ink-muted text-xs uppercase tracking-wider">Aut celkem</p>
                       <p className="font-mono-gauge text-3xl font-bold text-gauge-yellow">{dashboard.carCount}</p>
                     </div>
                     <div>
-                      <p className="text-slate-500 text-xs uppercase tracking-wider">Palivo celkem</p>
-                      <p className="font-mono-gauge text-3xl font-bold text-white">
+                      <p className="text-ink-muted text-xs uppercase tracking-wider">Palivo celkem</p>
+                      <p className="font-mono-gauge text-3xl font-bold text-ink">
                         {dashboard.totalFuelCost.toLocaleString('cs-CZ')}
                       </p>
                     </div>
                     <div>
-                      <p className="text-slate-500 text-xs uppercase tracking-wider">Servis + výdaje</p>
-                      <p className="font-mono-gauge text-3xl font-bold text-white">
+                      <p className="text-ink-muted text-xs uppercase tracking-wider">Servis + výdaje</p>
+                      <p className="font-mono-gauge text-3xl font-bold text-ink">
                         {(dashboard.totalServiceCost + dashboard.totalExpensesCost).toLocaleString('cs-CZ')}
                       </p>
                     </div>
                     <div>
-                      <p className="text-slate-500 text-xs uppercase tracking-wider">Celkem najeto</p>
-                      <p className="font-mono-gauge text-3xl font-bold text-white">
+                      <p className="text-ink-muted text-xs uppercase tracking-wider">Celkem najeto</p>
+                      <p className="font-mono-gauge text-3xl font-bold text-ink">
                         {cars.reduce((sum, c) => sum + (c.mileage || 0), 0).toLocaleString('cs-CZ')}
-                        <span className="text-sm text-slate-500 ml-1">km</span>
+                        <span className="text-sm text-ink-muted ml-1">km</span>
                       </p>
                     </div>
                   </div>
 
                   <div className="border-l border-panel-border pl-6 hidden md:block">
-                    <p className="text-slate-500 text-xs uppercase tracking-wider mb-2">Celkové náklady</p>
+                    <p className="text-ink-muted text-xs uppercase tracking-wider mb-2">Celkové náklady</p>
                     <p className="font-mono-gauge text-4xl font-extrabold text-gauge-orange">
                       {dashboard.totalCost.toLocaleString('cs-CZ')}
                     </p>
-                    <p className="text-slate-600 text-xs mt-1">Kč napříč všemi auty</p>
+                    <p className="text-ink-muted text-xs mt-1">Kč napříč všemi auty</p>
                   </div>
                 </div>
               </div>
@@ -162,19 +171,19 @@ function DashboardPage() {
                             className="w-4 h-4 accent-gauge-yellow"
                           />
                           <div>
-                            <span className="text-white text-sm font-medium">{reminder.title}</span>
-                            <span className="text-slate-500 text-xs ml-2">
+                            <span className="text-ink text-sm font-medium">{reminder.title}</span>
+                            <span className="text-ink-muted text-xs ml-2">
                               ({reminder.car.make} {reminder.car.model})
                             </span>
                           </div>
                         </div>
                         {reminder.dueDate && (
-                          <span className={`font-mono-gauge text-xs font-semibold ${dateInfo.urgent ? 'text-warning-red' : 'text-slate-500'}`}>
+                          <span className={`font-mono-gauge text-xs font-semibold ${dateInfo.urgent ? 'text-warning-red' : 'text-ink-muted'}`}>
                             {dateInfo.text}
                           </span>
                         )}
                         {reminder.dueMileage && !reminder.dueDate && (
-                          <span className="font-mono-gauge text-xs text-slate-500">
+                          <span className="font-mono-gauge text-xs text-ink-muted">
                             {reminder.dueMileage.toLocaleString('cs-CZ')} km
                           </span>
                         )}
@@ -186,7 +195,7 @@ function DashboardPage() {
             )}
 
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-white font-display font-semibold text-lg uppercase tracking-wider">🏁 Garáž</h2>
+              <h2 className="text-ink font-display font-semibold text-lg uppercase tracking-wider">🏁 Garáž</h2>
               <button
                 onClick={() => setShowModal(true)}
                 className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold uppercase tracking-wider"
@@ -196,7 +205,7 @@ function DashboardPage() {
             </div>
 
             {cars.length === 0 ? (
-              <p className="text-slate-500 font-mono-gauge">Garáž je prázdná.</p>
+              <p className="text-ink-muted font-mono-gauge">Garáž je prázdná.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {cars.map((car) => {
@@ -217,17 +226,17 @@ function DashboardPage() {
                             <div className="flex items-center gap-2">
                               <Link
                                 to={`/cars/${car.id}`}
-                                className="text-lg font-display font-semibold text-white hover:text-gauge-yellow"
+                                className="text-lg font-display font-semibold text-ink hover:text-gauge-yellow"
                               >
                                 {car.make} {car.model}
                               </Link>
                               {!isOwner && car.myRole && (
-                                <span className="text-[10px] font-mono-gauge text-slate-400 border border-panel-border rounded px-1.5 py-0.5 uppercase">
+                                <span className="text-[10px] font-mono-gauge text-ink-muted border border-panel-border rounded px-1.5 py-0.5 uppercase">
                                   {ROLE_LABELS[car.myRole] || car.myRole}
                                 </span>
                               )}
                             </div>
-                            <p className="text-slate-500 text-xs font-mono-gauge mt-1">
+                            <p className="text-ink-muted text-xs font-mono-gauge mt-1">
                               {car.licensePlate && `${car.licensePlate} • `}
                               {car.mileage?.toLocaleString('cs-CZ')} km
                             </p>
@@ -240,7 +249,7 @@ function DashboardPage() {
                           {isOwner && (
                             <button
                               onClick={() => handleDelete(car.id)}
-                              className="text-slate-600 hover:text-warning-red text-xs"
+                              className="text-ink-muted hover:text-warning-red text-xs"
                             >
                               Smazat
                             </button>

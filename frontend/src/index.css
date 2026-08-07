@@ -4,10 +4,12 @@
   --font-display: "Space Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  --color-asphalt: #121212;
-  --color-asphalt-light: #1c1c1c;
-  --color-panel: #1a1a1a;
-  --color-panel-border: #2e2e2e;
+  --color-asphalt: var(--c-asphalt);
+  --color-asphalt-light: var(--c-asphalt-light);
+  --color-panel: var(--c-panel);
+  --color-panel-border: var(--c-panel-border);
+  --color-ink: var(--c-ink);
+  --color-ink-muted: var(--c-ink-muted);
 
   --color-gauge-yellow: #ffcc00;
   --color-gauge-orange: #ff5500;
@@ -15,9 +17,30 @@
   --color-warning-red: #e6342a;
 }
 
+/* Tmavý motiv (výchozí) */
+:root {
+  --c-asphalt: #121212;
+  --c-asphalt-light: #1c1c1c;
+  --c-panel: #1a1a1a;
+  --c-panel-border: #2e2e2e;
+  --c-ink: #ffffff;
+  --c-ink-muted: #94a3b8;
+}
+
+/* Světlý motiv */
+:root[data-theme="light"] {
+  --c-asphalt: #f0f0ee;
+  --c-asphalt-light: #e6e6e2;
+  --c-panel: #ffffff;
+  --c-panel-border: #d8d8d4;
+  --c-ink: #121212;
+  --c-ink-muted: #57534e;
+}
+
 body {
   background-color: var(--color-asphalt);
   font-family: var(--font-display);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .font-mono-gauge {

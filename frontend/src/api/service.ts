@@ -9,6 +9,9 @@ export interface ServiceRecord {
   mileage: number | null;
   invoiceUrl: string | null;
   photoUrl: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  placeName: string | null;
 }
 
 export interface ServiceRecordInput {
@@ -19,6 +22,9 @@ export interface ServiceRecordInput {
   mileage?: number;
   invoiceUrl?: string;
   photoUrl?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  placeName?: string;
 }
 
 export async function getServiceRecords(carId: string): Promise<ServiceRecord[]> {
