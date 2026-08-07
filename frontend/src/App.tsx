@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CarDetailPage from './pages/CarDetailPage';
 import DashboardPage from './pages/DashboardPage';
+import MapPage from './pages/MapPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -39,13 +40,21 @@ function App() {
             }
           />
           <Route
-  path="/cars/:id"
-  element={
-    <PrivateRoute>
-      <CarDetailPage />
-    </PrivateRoute>
-  }
-/>
+            path="/cars/:id"
+            element={
+              <PrivateRoute>
+                <CarDetailPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/map"
+            element={
+              <PrivateRoute>
+                <MapPage />
+              </PrivateRoute>
+            }
+          />
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
       </AuthProvider>

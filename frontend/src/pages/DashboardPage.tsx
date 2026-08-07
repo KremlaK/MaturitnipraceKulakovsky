@@ -79,12 +79,20 @@ function DashboardPage() {
               {user?.name || user?.email}
             </h1>
           </div>
-          <button
-            onClick={logout}
-            className="border border-panel-border text-slate-400 hover:text-white hover:border-slate-500 px-4 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
-          >
-            Odhlásit
-          </button>
+          <div className="flex gap-3">
+            <Link
+              to="/map"
+              className="border border-panel-border text-slate-400 hover:text-gauge-yellow hover:border-gauge-yellow px-4 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+            >
+              🗺️ Mapa
+            </Link>
+            <button
+              onClick={logout}
+              className="border border-panel-border text-slate-400 hover:text-white hover:border-slate-500 px-4 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+            >
+              Odhlásit
+            </button>
+          </div>
         </div>
 
         {loading ? (
