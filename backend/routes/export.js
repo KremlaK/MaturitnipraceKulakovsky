@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const prisma = require('../prisma/client');
@@ -6,17 +7,17 @@ const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
-function safeFilename(str) {
-  return str
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // odstraní diakritiku
-    .replace(/[^a-zA-Z0-9-_]/g, '_'); // nahradí zbylé nepovolené znaky podtržítkem
-}
-
 router.use(authMiddleware);
 
 async function getOwnedCar(carId, userId) {
   return prisma.car.findFirst({ where: { id: carId, ownerId: userId } });
+}
+
+function safeFilename(str) {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9-_]/g, '_');
 }
 
 // GET /api/cars/:carId/export/pdf - servisní knížka jako PDF
@@ -33,16 +34,21 @@ router.get('/:carId/export/pdf', async (req, res) => {
     });
 
     const doc = new PDFDocument({ margin: 50 });
+    doc.registerFont('Regular', path.join(__dirname, '..', 'fonts', 'DejaVuSans.ttf'));
+    doc.registerFont('Bold', path.join(__dirname, '..', 'fonts', 'DejaVuSans-Bold.ttf'));
+    doc.font('Regular');
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="servisni-knizka-${safeFilename(car.make)}-${safeFilename(car.model)}.pdf"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="servisni-knizka-${safeFilename(car.make)}-${safeFilename(car.model)}.pdf"`
+    );
 
     doc.pipe(res);
 
-    // Hlavička
-    doc.fontSize(20).text('Servisní knížka', { align: 'center' });
+    doc.font('Bold').fontSize(20).text('Servisní knížka', { align: 'center' });
     doc.moveDown();
-    doc.fontSize(14).text(`${car.make} ${car.model}`, { align: 'center' });
+    doc.font('Regular').fontSize(14).text(`${car.make} ${car.model}`, { align: 'center' });
     doc.fontSize(10).fillColor('#666666').text(
       `${car.year ? `Rok: ${car.year}  ` : ''}${car.licensePlate ? `SPZ: ${car.licensePlate}  ` : ''}${car.vin ? `VIN: ${car.vin}` : ''}`,
       { align: 'center' }
@@ -53,16 +59,15 @@ router.get('/:carId/export/pdf', async (req, res) => {
     if (serviceRecords.length === 0) {
       doc.fontSize(12).text('Zatím nejsou žádné servisní záznamy.');
     } else {
-      // Tabulka záznamů
       serviceRecords.forEach((record, index) => {
         if (doc.y > 700) {
           doc.addPage();
         }
 
-        doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold').text(
+        doc.fontSize(12).fillColor('#000000').font('Bold').text(
           `${index + 1}. ${record.type}`,
         );
-        doc.font('Helvetica').fontSize(10).fillColor('#444444');
+        doc.font('Regular').fontSize(10).fillColor('#444444');
         doc.text(`Datum: ${new Date(record.date).toLocaleDateString('cs-CZ')}`);
         if (record.mileage) doc.text(`Stav tachometru: ${record.mileage.toLocaleString('cs-CZ')} km`);
         if (record.price) doc.text(`Cena: ${record.price.toLocaleString('cs-CZ')} Kč`);
@@ -73,14 +78,13 @@ router.get('/:carId/export/pdf', async (req, res) => {
         doc.moveDown();
       });
 
-      // Součet
       const total = serviceRecords.reduce((sum, r) => sum + (r.price || 0), 0);
-      doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000').text(
+      doc.fontSize(12).font('Bold').fillColor('#000000').text(
         `Celkové náklady na servis: ${total.toLocaleString('cs-CZ')} Kč`,
       );
     }
 
-    doc.fontSize(8).fillColor('#999999').text(
+    doc.font('Regular').fontSize(8).fillColor('#999999').text(
       `Vygenerováno v AutoApp dne ${new Date().toLocaleDateString('cs-CZ')}`,
       50, 780, { align: 'center' }
     );
@@ -109,7 +113,6 @@ router.get('/:carId/export/excel', async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'AutoApp';
 
-    // List: Servis
     const serviceSheet = workbook.addWorksheet('Servis');
     serviceSheet.columns = [
       { header: 'Datum', key: 'date', width: 15 },
@@ -129,7 +132,6 @@ router.get('/:carId/export/excel', async (req, res) => {
       });
     });
 
-    // List: Tankování
     const fuelSheet = workbook.addWorksheet('Tankování');
     fuelSheet.columns = [
       { header: 'Datum', key: 'date', width: 15 },
@@ -151,7 +153,6 @@ router.get('/:carId/export/excel', async (req, res) => {
       });
     });
 
-    // List: Výdaje
     const expenseSheet = workbook.addWorksheet('Výdaje');
     expenseSheet.columns = [
       { header: 'Datum', key: 'date', width: 15 },
@@ -169,7 +170,6 @@ router.get('/:carId/export/excel', async (req, res) => {
       });
     });
 
-    // List: Souhrn
     const summarySheet = workbook.addWorksheet('Souhrn');
     summarySheet.columns = [
       { header: 'Kategorie', key: 'category', width: 25 },
@@ -185,7 +185,10 @@ router.get('/:carId/export/excel', async (req, res) => {
     summarySheet.addRow({ category: 'CELKEM', total: totalService + totalFuel + totalExpenses }).font = { bold: true };
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="naklady-${safeFilename(car.make)}-${safeFilename(car.model)}.xlsx"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="naklady-${safeFilename(car.make)}-${safeFilename(car.model)}.xlsx"`
+    );
 
     await workbook.xlsx.write(res);
     res.end();

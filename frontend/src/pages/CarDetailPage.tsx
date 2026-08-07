@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getCar, type Car } from '../api/cars';
+import { getCar, downloadCarExport, type Car } from '../api/cars';
 import { getServiceRecords, deleteServiceRecord, type ServiceRecord } from '../api/service';
 import { getFuelRecords, deleteFuelRecord, getFuelStats, type FuelRecord, type FuelStats } from '../api/fuel';
 import { getExpenses, deleteExpense, EXPENSE_CATEGORY_LABELS, type Expense } from '../api/expenses';
@@ -124,6 +124,16 @@ function CarDetailPage() {
     loadData();
   }
 
+  async function handleExport(format: 'pdf' | 'excel') {
+    if (!id || !car) return;
+    try {
+      await downloadCarExport(id, format, `${car.make}-${car.model}`);
+    } catch (err) {
+      console.error(err);
+      alert('Export se nezdařil.');
+    }
+  }
+
   const totalServiceCost = records.reduce((sum, r) => sum + (r.price || 0), 0);
   const totalExpensesCost = expenses.reduce((sum, e) => sum + e.price, 0);
   const totalOverallCost = totalServiceCost + totalExpensesCost + (fuelStats?.totalSpent || 0);
@@ -151,12 +161,26 @@ function CarDetailPage() {
           <Link to="/dashboard" className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge">
             ← Zpět do garáže
           </Link>
-          <button
-            onClick={() => setShowEditModal(true)}
-            className="text-slate-500 hover:text-white text-sm font-mono-gauge"
-          >
-            ✏️ Upravit
-          </button>
+          <div className="flex gap-3 items-center">
+            <button
+              onClick={() => handleExport('pdf')}
+              className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge"
+            >
+              📄 PDF
+            </button>
+            <button
+              onClick={() => handleExport('excel')}
+              className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge"
+            >
+              📊 Excel
+            </button>
+            <button
+              onClick={() => setShowEditModal(true)}
+              className="text-slate-500 hover:text-white text-sm font-mono-gauge"
+            >
+              ✏️ Upravit
+            </button>
+          </div>
         </div>
 
         <div className="bg-panel border border-panel-border rounded-xl overflow-hidden mb-6">

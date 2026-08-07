@@ -47,3 +47,15 @@ export async function updateCar(id: string, data: Partial<CarInput>): Promise<Ca
   const res = await api.put(`/cars/${id}`, data);
   return res.data;
 }
+
+export async function downloadCarExport(carId: string, format: 'pdf' | 'excel', carName: string): Promise<void> {
+  const res = await api.get(`/cars/${carId}/export/${format}`, { responseType: 'blob' });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', format === 'pdf' ? `servisni-knizka-${carName}.pdf` : `naklady-${carName}.xlsx`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
