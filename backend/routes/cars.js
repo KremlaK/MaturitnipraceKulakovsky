@@ -1,20 +1,37 @@
 const express = require('express');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
+const { getAccessibleCar, getOwnedCar } = require('../utils/carAccess');
 
 const router = express.Router();
 
-// Všechny routy pro auta vyžadují přihlášení
 router.use(authMiddleware);
 
-// GET /api/cars - seznam všech aut přihlášeného uživatele
+// GET /api/cars - seznam všech aut, ke kterým má uživatel přístup (vlastní i sdílená)
 router.get('/', async (req, res) => {
   try {
     const cars = await prisma.car.findMany({
-      where: { ownerId: req.userId },
+      where: {
+        OR: [
+          { ownerId: req.userId },
+          { shares: { some: { userId: req.userId } } },
+        ],
+      },
       orderBy: { createdAt: 'desc' },
+      include: {
+        owner: { select: { id: true, name: true, email: true } },
+        shares: { where: { userId: req.userId }, select: { role: true } },
+      },
     });
-    res.json(cars);
+
+    const result = cars.map((car) => ({
+      ...car,
+      isOwner: car.ownerId === req.userId,
+      myRole: car.ownerId === req.userId ? 'MAJITEL' : car.shares[0]?.role || null,
+      shares: undefined,
+    }));
+
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Něco se pokazilo na serveru.' });
@@ -24,15 +41,13 @@ router.get('/', async (req, res) => {
 // GET /api/cars/:id - detail jednoho auta
 router.get('/:id', async (req, res) => {
   try {
-    const car = await prisma.car.findFirst({
-      where: { id: req.params.id, ownerId: req.userId },
-    });
+    const car = await getAccessibleCar(req.params.id, req.userId);
 
     if (!car) {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
 
-    res.json(car);
+    res.json({ ...car, isOwner: car.ownerId === req.userId });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Něco se pokazilo na serveru.' });
@@ -72,15 +87,13 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/cars/:id - úprava auta
+// PUT /api/cars/:id - úprava auta (jen majitel)
 router.put('/:id', async (req, res) => {
   try {
-    const existingCar = await prisma.car.findFirst({
-      where: { id: req.params.id, ownerId: req.userId },
-    });
+    const existingCar = await getOwnedCar(req.params.id, req.userId);
 
     if (!existingCar) {
-      return res.status(404).json({ error: 'Auto nenalezeno.' });
+      return res.status(404).json({ error: 'Auto nenalezeno nebo nemáš oprávnění ho upravit.' });
     }
 
     const { vin, licensePlate, make, model, year, mileage, notes, photoUrl } = req.body;
@@ -97,15 +110,13 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/cars/:id - smazání auta
+// DELETE /api/cars/:id - smazání auta (jen majitel)
 router.delete('/:id', async (req, res) => {
   try {
-    const existingCar = await prisma.car.findFirst({
-      where: { id: req.params.id, ownerId: req.userId },
-    });
+    const existingCar = await getOwnedCar(req.params.id, req.userId);
 
     if (!existingCar) {
-      return res.status(404).json({ error: 'Auto nenalezeno.' });
+      return res.status(404).json({ error: 'Auto nenalezeno nebo nemáš oprávnění ho smazat.' });
     }
 
     await prisma.car.delete({ where: { id: req.params.id } });

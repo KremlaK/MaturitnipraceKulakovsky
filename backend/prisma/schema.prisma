@@ -11,18 +11,19 @@ datasource db {
 }
 
 model User {
-  id                    String    @id @default(uuid())
-  email                 String    @unique
+  id                    String     @id @default(uuid())
+  email                 String     @unique
   password              String
   name                  String?
-  emailVerified         Boolean   @default(false)
+  emailVerified         Boolean    @default(false)
   emailVerifyToken      String?
   emailVerifyExpires    DateTime?
   resetPasswordToken    String?
   resetPasswordExpires  DateTime?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
   cars                  Car[]
+  carShares             CarShare[]
 }
 
 model Car {
@@ -45,6 +46,7 @@ model Car {
   expenses       Expense[]
   reminders      Reminder[]
   photos         Photo[]
+  shares         CarShare[]
 }
 
 model ServiceRecord {
@@ -145,4 +147,22 @@ model Photo {
 
   carId     String
   car       Car           @relation(fields: [carId], references: [id], onDelete: Cascade)
+}
+
+enum ShareRole {
+  SPOLUMAJITEL
+  SERVIS
+}
+
+model CarShare {
+  id        String    @id @default(uuid())
+  role      ShareRole @default(SPOLUMAJITEL)
+  createdAt DateTime  @default(now())
+
+  carId     String
+  car       Car       @relation(fields: [carId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([carId, userId])
 }
