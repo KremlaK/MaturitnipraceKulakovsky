@@ -36,18 +36,18 @@ function CarCharts({ stats }: Props) {
     <div className="space-y-6">
       {/* Měsíční náklady */}
       <div className="bg-panel border border-panel-border rounded-xl p-4">
-        <h3 className="text-white font-display font-semibold mb-4 text-sm uppercase tracking-wider">Náklady podle měsíců</h3>
+        <h3 className="text-ink font-display font-semibold mb-4 text-sm uppercase tracking-wider">Náklady podle měsíců</h3>
         {monthlyData.length === 0 ? (
-          <p className="text-slate-500 text-sm font-mono-gauge">Zatím nejsou žádná data.</p>
+          <p className="text-ink-muted text-sm font-mono-gauge">Zatím nejsou žádná data.</p>
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" />
-              <XAxis dataKey="monthLabel" stroke="#6b6b6b" fontSize={11} fontFamily="JetBrains Mono" />
-              <YAxis stroke="#6b6b6b" fontSize={11} fontFamily="JetBrains Mono" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--c-panel-border)" />
+              <XAxis dataKey="monthLabel" stroke="var(--c-ink-muted)" fontSize={11} fontFamily="JetBrains Mono" />
+              <YAxis stroke="var(--c-ink-muted)" fontSize={11} fontFamily="JetBrains Mono" />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: 8, fontFamily: 'JetBrains Mono' }}
-                labelStyle={{ color: '#fff' }}
+                contentStyle={{ backgroundColor: 'var(--c-panel)', border: '1px solid var(--c-panel-border)', borderRadius: 8, fontFamily: 'JetBrains Mono' }}
+                labelStyle={{ color: 'var(--c-ink)' }}
                 formatter={(value) => `${Number(value).toLocaleString('cs-CZ')} Kč`}
               />
               <Legend wrapperStyle={{ fontFamily: 'JetBrains Mono', fontSize: 12 }} />
@@ -62,9 +62,9 @@ function CarCharts({ stats }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Náklady podle kategorií */}
         <div className="bg-panel border border-panel-border rounded-xl p-4">
-          <h3 className="text-white font-display font-semibold mb-4 text-sm uppercase tracking-wider">Podle kategorií</h3>
+          <h3 className="text-ink font-display font-semibold mb-4 text-sm uppercase tracking-wider">Podle kategorií</h3>
           {categoryData.length === 0 ? (
-            <p className="text-slate-500 text-sm font-mono-gauge">Zatím nejsou žádná data.</p>
+            <p className="text-ink-muted text-sm font-mono-gauge">Zatím nejsou žádná data.</p>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
@@ -82,7 +82,7 @@ function CarCharts({ stats }: Props) {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: 8, fontFamily: 'JetBrains Mono' }}
+                  contentStyle={{ backgroundColor: 'var(--c-panel)', border: '1px solid var(--c-panel-border)', borderRadius: 8, fontFamily: 'JetBrains Mono' }}
                   formatter={(value) => `${Number(value).toLocaleString('cs-CZ')} Kč`}
                 />
               </PieChart>
@@ -92,17 +92,17 @@ function CarCharts({ stats }: Props) {
 
         {/* Vývoj spotřeby */}
         <div className="bg-panel border border-panel-border rounded-xl p-4">
-          <h3 className="text-white font-display font-semibold mb-4 text-sm uppercase tracking-wider">Vývoj spotřeby</h3>
+          <h3 className="text-ink font-display font-semibold mb-4 text-sm uppercase tracking-wider">Vývoj spotřeby</h3>
           {stats.consumptionTrend.length === 0 ? (
-            <p className="text-slate-500 text-sm font-mono-gauge">Potřeba alespoň 2 tankování do plna.</p>
+            <p className="text-ink-muted text-sm font-mono-gauge">Potřeba alespoň 2 tankování do plna.</p>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={stats.consumptionTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2e2e2e" />
-                <XAxis dataKey="date" stroke="#6b6b6b" fontSize={10} fontFamily="JetBrains Mono" />
-                <YAxis stroke="#6b6b6b" fontSize={11} unit=" l" fontFamily="JetBrains Mono" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--c-panel-border)" />
+                <XAxis dataKey="date" stroke="var(--c-ink-muted)" fontSize={10} fontFamily="JetBrains Mono" />
+                <YAxis stroke="var(--c-ink-muted)" fontSize={11} unit=" l" fontFamily="JetBrains Mono" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: 8, fontFamily: 'JetBrains Mono' }}
+                  contentStyle={{ backgroundColor: 'var(--c-panel)', border: '1px solid var(--c-panel-border)', borderRadius: 8, fontFamily: 'JetBrains Mono' }}
                   formatter={(value) => `${value} l/100km`}
                 />
                 <Line type="monotone" dataKey="consumption" stroke="#ffcc00" strokeWidth={2} dot={{ fill: '#ffcc00' }} />

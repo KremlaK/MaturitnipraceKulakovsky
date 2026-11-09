@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import CarDetailPage from './pages/CarDetailPage';
 import DashboardPage from './pages/DashboardPage';
 import MapPage from './pages/MapPage';
+import AccountActionPage from './pages/AccountActionPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -33,6 +34,9 @@ function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/verify-email" element={<AccountActionPage key="verify-email" action="verify-email" />} />
+            <Route path="/forgot-password" element={<AccountActionPage key="forgot-password" action="forgot-password" />} />
+            <Route path="/reset-password" element={<AccountActionPage key="reset-password" action="reset-password" />} />
             <Route
               path="/dashboard"
               element={

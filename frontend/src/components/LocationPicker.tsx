@@ -37,38 +37,46 @@ function RecenterMap({ position }: { position: [number, number] }) {
 }
 
 function LocationPicker({ latitude, longitude, onChange }: Props) {
-  const [gpsStatus, setGpsStatus] = useState<'loading' | 'done' | 'denied' | 'unavailable'>('loading');
+  const [gpsStatus, setGpsStatus] = useState<'loading' | 'done' | 'denied' | 'unavailable'>(() => latitude !== null && longitude !== null ? 'done' : !navigator.geolocation ? 'unavailable' : 'loading');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PlaceSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const manualLocation = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const position: [number, number] = latitude !== null && longitude !== null ? [latitude, longitude] : DEFAULT_CENTER;
 
   useEffect(() => {
-    if (latitude !== null && longitude !== null) {
-      setGpsStatus('done');
-      return;
-    }
-
-    if (!navigator.geolocation) {
-      setGpsStatus('unavailable');
-      return;
-    }
+    if ((latitude !== null && longitude !== null) || !navigator.geolocation) return;
+    let active = true;
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        if (!active || manualLocation.current) return;
         onChange(pos.coords.latitude, pos.coords.longitude);
         setGpsStatus('done');
       },
       () => {
+        if (!active || manualLocation.current) return;
         setGpsStatus('denied');
       },
       { timeout: 8000 }
     );
+    return () => { active = false; };
+    // GPS is requested once per mount; parent callbacks use functional updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  }, []);
+
+  function chooseLocation(lat: number, lng: number, placeName?: string) {
+    manualLocation.current = true;
+    setGpsStatus('done');
+    onChange(lat, lng, placeName);
+  }
 
   function handleQueryChange(value: string) {
     setQuery(value);
@@ -96,7 +104,7 @@ function LocationPicker({ latitude, longitude, onChange }: Props) {
   }
 
   function handleSelectResult(result: PlaceSearchResult) {
-    onChange(result.latitude, result.longitude, result.name);
+    chooseLocation(result.latitude, result.longitude, result.name);
     setQuery(result.name);
     setShowResults(false);
   }
@@ -143,7 +151,7 @@ function LocationPicker({ latitude, longitude, onChange }: Props) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {latitude !== null && longitude !== null && <Marker position={[latitude, longitude]} />}
-          <ClickHandler onChange={onChange} />
+          <ClickHandler onChange={chooseLocation} />
           <RecenterMap position={position} />
         </MapContainer>
       </div>

@@ -10,7 +10,7 @@ router.use(authMiddleware);
 router.get('/', async (req, res) => {
   try {
     const cars = await prisma.car.findMany({
-      where: { ownerId: req.userId },
+      where: { OR: [{ ownerId: req.userId }, { shares: { some: { userId: req.userId } } }] },
       include: {
         serviceRecords: true,
         fuelRecords: true,

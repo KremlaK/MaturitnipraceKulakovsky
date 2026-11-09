@@ -1,3 +1,4 @@
+const { fuelConsumption } = require('../utils/fuelConsumption');
 const express = require('express');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
@@ -52,8 +53,8 @@ router.post('/:carId/fuel', async (req, res) => {
         mileage,
         fuelType,
         fullTank: fullTank !== undefined ? fullTank : true,
-        latitude: latitude || null,
-        longitude: longitude || null,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
         placeName: placeName || null,
         carId: req.params.carId,
       },
@@ -122,25 +123,7 @@ router.get('/:carId/fuel-stats', async (req, res) => {
       });
     }
 
-    const fullTankRecords = records.filter((r) => r.fullTank);
-
-    let totalConsumptionLiters = 0;
-    let totalConsumptionKm = 0;
-
-    for (let i = 1; i < fullTankRecords.length; i++) {
-      const prev = fullTankRecords[i - 1];
-      const curr = fullTankRecords[i];
-      const km = curr.mileage - prev.mileage;
-
-      if (km > 0) {
-        totalConsumptionLiters += curr.liters;
-        totalConsumptionKm += km;
-      }
-    }
-
-    const averageConsumption = totalConsumptionKm > 0
-      ? Math.round((totalConsumptionLiters / totalConsumptionKm) * 100 * 100) / 100
-      : null;
+    const { averageConsumption } = fuelConsumption(records);
 
     const totalSpent = records.reduce((sum, r) => sum + r.totalPrice, 0);
     const totalLiters = records.reduce((sum, r) => sum + r.liters, 0);

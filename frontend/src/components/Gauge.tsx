@@ -21,7 +21,7 @@ function Gauge({ value, max, label, unit = 'Kč' }: Props) {
         <path
           d="M 20 100 A 80 80 0 0 1 180 100"
           fill="none"
-          stroke="#2e2e2e"
+          stroke="var(--c-panel-border)"
           strokeWidth="14"
           strokeLinecap="round"
         />
@@ -37,17 +37,17 @@ function Gauge({ value, max, label, unit = 'Kč' }: Props) {
         />
         {/* Ručička */}
         <g transform={`rotate(${angle} 100 100)`} style={{ transition: 'transform 0.6s ease-out' }}>
-          <line x1="100" y1="100" x2="100" y2="30" stroke="#f5f5f5" strokeWidth="3" strokeLinecap="round" />
-          <circle cx="100" cy="100" r="7" fill="#f5f5f5" />
+          <line x1="100" y1="100" x2="100" y2="30" stroke="var(--c-ink)" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="100" cy="100" r="7" fill="var(--c-ink)" />
         </g>
         {/* Značky E / F */}
-        <text x="14" y="115" fill="#6b6b6b" fontSize="10" fontFamily="JetBrains Mono">E</text>
-        <text x="180" y="115" fill="#6b6b6b" fontSize="10" fontFamily="JetBrains Mono">F</text>
+        <text x="14" y="115" fill="var(--c-ink-muted)" fontSize="10" fontFamily="JetBrains Mono">E</text>
+        <text x="180" y="115" fill="var(--c-ink-muted)" fontSize="10" fontFamily="JetBrains Mono">F</text>
       </svg>
-      <p className="font-mono-gauge text-2xl font-bold text-white -mt-2">
-        {value.toLocaleString('cs-CZ')} <span className="text-sm text-slate-500">{unit}</span>
+      <p className="font-mono-gauge text-2xl font-bold text-ink -mt-2">
+        {value.toLocaleString('cs-CZ')} <span className="text-sm text-ink-muted">{unit}</span>
       </p>
-      <p className="text-slate-500 text-xs uppercase tracking-wider mt-1">{label}</p>
+      <p className="text-ink-muted text-xs uppercase tracking-wider mt-1">{label}</p>
     </div>
   );
 }

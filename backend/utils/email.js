@@ -1,12 +1,30 @@
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+async function sendEmail(message) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const { error } = await resend.emails.send({
+    ...message,
+    from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+  });
+  if (error) throw new Error(error.message || 'Odesílání e-mailu selhalo.');
+}
+
+function frontendLink(path, token) {
+  const url = new URL(path, process.env.FRONTEND_URL || 'http://localhost:5173');
+  url.searchParams.set('token', token);
+  return url.toString();
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[char]);
+}
 
 async function sendVerificationEmail(toEmail, token) {
-  const verifyUrl = `http://localhost:5173/verify-email?token=${token}`;
+  const verifyUrl = frontendLink('/verify-email', token);
 
-  await resend.emails.send({
-    from: 'onboarding@resend.dev',
+  await sendEmail({
     to: toEmail,
     subject: 'Ověř svůj e-mail - AutoApp',
     html: `
@@ -19,10 +37,9 @@ async function sendVerificationEmail(toEmail, token) {
 }
 
 async function sendPasswordResetEmail(toEmail, token) {
-  const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+  const resetUrl = frontendLink('/reset-password', token);
 
-  await resend.emails.send({
-    from: 'onboarding@resend.dev',
+  await sendEmail({
     to: toEmail,
     subject: 'Obnovení hesla - AutoApp',
     html: `
@@ -41,11 +58,10 @@ async function sendReminderEmail(toEmail, reminders) {
     const dueInfo = r.dueDate
       ? `Termín: ${new Date(r.dueDate).toLocaleDateString('cs-CZ')}`
       : `Při nájezdu: ${r.dueMileage?.toLocaleString('cs-CZ')} km`;
-    return `<li><strong>${r.title}</strong> (${carName}) — ${dueInfo}</li>`;
+    return `<li><strong>${escapeHtml(r.title)}</strong> (${escapeHtml(carName)}) — ${dueInfo}</li>`;
   }).join('');
 
-  await resend.emails.send({
-    from: 'onboarding@resend.dev',
+  await sendEmail({
     to: toEmail,
     subject: `⏰ Blížící se připomínky - AutoApp`,
     html: `

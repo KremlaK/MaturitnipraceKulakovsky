@@ -38,5 +38,5 @@ export async function createServiceRecord(carId: string, data: ServiceRecordInpu
 }
 
 export async function deleteServiceRecord(id: string): Promise<void> {
-  await api.delete(`/service/${id}`);
+  await api.delete(`/cars/service/${id}`);
 }

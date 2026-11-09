@@ -37,7 +37,7 @@ function AddPhotoModal({ carId, onClose, onCreated }: Props) {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
       <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-white font-display font-semibold text-lg mb-4 uppercase tracking-wider">Nová fotka</h2>
+        <h2 className="text-ink font-display font-semibold text-lg mb-4 uppercase tracking-wider">Nová fotka</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <FileUpload
@@ -48,12 +48,12 @@ function AddPhotoModal({ carId, onClose, onCreated }: Props) {
           />
 
           <div>
-            <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Kategorie *</label>
+            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Kategorie *</label>
             <select
               required
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value as PhotoCategory })}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
             >
               {Object.entries(PHOTO_CATEGORY_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -62,12 +62,12 @@ function AddPhotoModal({ carId, onClose, onCreated }: Props) {
           </div>
 
           <div>
-            <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Popisek</label>
+            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Popisek</label>
             <input
               type="text"
               value={form.caption || ''}
               onChange={(e) => setForm({ ...form, caption: e.target.value })}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
             />
           </div>
 
@@ -81,7 +81,7 @@ function AddPhotoModal({ carId, onClose, onCreated }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-panel-border text-slate-400 hover:text-white hover:border-slate-500 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+              className="flex-1 border border-panel-border text-ink-muted hover:text-ink hover:border-gauge-yellow py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
             >
               Zrušit
             </button>

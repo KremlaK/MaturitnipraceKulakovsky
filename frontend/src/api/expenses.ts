@@ -41,5 +41,5 @@ export async function createExpense(carId: string, data: ExpenseInput): Promise<
 }
 
 export async function deleteExpense(id: string): Promise<void> {
-  await api.delete(`/expenses/${id}`);
+  await api.delete(`/cars/expenses/${id}`);
 }

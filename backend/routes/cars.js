@@ -47,7 +47,12 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Auto nenalezeno.' });
     }
 
-    res.json({ ...car, isOwner: car.ownerId === req.userId });
+    const isOwner = car.ownerId === req.userId;
+    const share = isOwner ? null : await prisma.carShare.findUnique({
+      where: { carId_userId: { carId: car.id, userId: req.userId } },
+      select: { role: true },
+    });
+    res.json({ ...car, isOwner, myRole: isOwner ? 'MAJITEL' : share?.role });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Něco se pokazilo na serveru.' });

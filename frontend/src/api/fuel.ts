@@ -47,7 +47,7 @@ export async function createFuelRecord(carId: string, data: FuelRecordInput): Pr
 }
 
 export async function deleteFuelRecord(id: string): Promise<void> {
-  await api.delete(`/fuel/${id}`);
+  await api.delete(`/cars/fuel/${id}`);
 }
 
 export async function getFuelStats(carId: string): Promise<FuelStats> {

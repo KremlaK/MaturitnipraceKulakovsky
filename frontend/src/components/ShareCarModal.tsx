@@ -55,33 +55,33 @@ function ShareCarModal({ carId, onClose }: Props) {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
       <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <h2 className="text-white font-display font-semibold text-lg mb-4 uppercase tracking-wider">Sdílet auto</h2>
+        <h2 className="text-ink font-display font-semibold text-lg mb-4 uppercase tracking-wider">Sdílet auto</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3 mb-6">
           <div>
-            <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">E-mail uživatele</label>
+            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">E-mail uživatele</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="kolega@email.cz"
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
             />
           </div>
 
           <div>
-            <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Role</label>
+            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Role</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as ShareRole)}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
             >
               {Object.entries(SHARE_ROLE_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
             </select>
-            <p className="text-slate-600 text-xs mt-1 font-mono-gauge">
+            <p className="text-ink-muted text-xs mt-1 font-mono-gauge opacity-70">
               Uživatel musí být v AutoApp už zaregistrovaný.
             </p>
           </div>
@@ -102,25 +102,25 @@ function ShareCarModal({ carId, onClose }: Props) {
         </form>
 
         <div className="border-t border-panel-border pt-4">
-          <h3 className="text-slate-400 text-xs uppercase tracking-wider mb-3 font-mono-gauge">Kdo má přístup</h3>
+          <h3 className="text-ink-muted text-xs uppercase tracking-wider mb-3 font-mono-gauge">Kdo má přístup</h3>
 
           {loadingList ? (
-            <p className="text-slate-500 text-sm font-mono-gauge">Načítám...</p>
+            <p className="text-ink-muted text-sm font-mono-gauge">Načítám...</p>
           ) : shares.length === 0 ? (
-            <p className="text-slate-500 text-sm font-mono-gauge">Auto zatím není s nikým sdílené.</p>
+            <p className="text-ink-muted text-sm font-mono-gauge">Auto zatím není s nikým sdílené.</p>
           ) : (
             <div className="space-y-2">
               {shares.map((share) => (
                 <div key={share.id} className="flex justify-between items-center bg-asphalt-light border border-panel-border rounded px-3 py-2">
                   <div>
-                    <p className="text-white text-sm font-mono-gauge">{share.user.name || share.user.email}</p>
-                    <p className="text-slate-500 text-xs font-mono-gauge">
+                    <p className="text-ink text-sm font-mono-gauge">{share.user.name || share.user.email}</p>
+                    <p className="text-ink-muted text-xs font-mono-gauge">
                       {share.user.email} • {SHARE_ROLE_LABELS[share.role]}
                     </p>
                   </div>
                   <button
                     onClick={() => handleRemove(share.id)}
-                    className="text-slate-600 hover:text-warning-red text-xs font-mono-gauge"
+                    className="text-ink-muted hover:text-warning-red text-xs font-mono-gauge"
                   >
                     Odebrat
                   </button>
@@ -132,7 +132,7 @@ function ShareCarModal({ carId, onClose }: Props) {
 
         <button
           onClick={onClose}
-          className="w-full mt-4 border border-panel-border text-slate-400 hover:text-white hover:border-slate-500 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+          className="w-full mt-4 border border-panel-border text-ink-muted hover:text-ink hover:border-gauge-yellow py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
         >
           Zavřít
         </button>

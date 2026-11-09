@@ -34,17 +34,17 @@ function MapPage() {
   return (
     <div className="min-h-screen bg-asphalt p-6 md:p-8">
       <div className="max-w-5xl mx-auto">
-        <Link to="/dashboard" className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge">
+        <Link to="/dashboard" className="text-ink-muted hover:text-gauge-yellow text-sm font-mono-gauge">
           ← Zpět do garáže
         </Link>
 
         <div className="flex justify-between items-center mt-4 mb-4">
-          <h1 className="text-2xl font-display font-bold text-white">🗺️ Mapa</h1>
+          <h1 className="text-2xl font-display font-bold text-ink">🗺️ Mapa</h1>
           <div className="flex gap-2">
             <button
               onClick={() => setFilter('all')}
               className={`px-3 py-1.5 rounded font-mono-gauge text-xs font-semibold uppercase border ${
-                filter === 'all' ? 'bg-gauge-yellow text-black border-gauge-yellow' : 'bg-panel text-slate-400 border-panel-border'
+                filter === 'all' ? 'bg-gauge-yellow text-black border-gauge-yellow' : 'bg-panel text-ink-muted border-panel-border'
               }`}
             >
               Vše
@@ -52,7 +52,7 @@ function MapPage() {
             <button
               onClick={() => setFilter('fuel')}
               className={`px-3 py-1.5 rounded font-mono-gauge text-xs font-semibold uppercase border ${
-                filter === 'fuel' ? 'bg-gauge-yellow text-black border-gauge-yellow' : 'bg-panel text-slate-400 border-panel-border'
+                filter === 'fuel' ? 'bg-gauge-yellow text-black border-gauge-yellow' : 'bg-panel text-ink-muted border-panel-border'
               }`}
             >
               ⛽ Tankování
@@ -60,7 +60,7 @@ function MapPage() {
             <button
               onClick={() => setFilter('service')}
               className={`px-3 py-1.5 rounded font-mono-gauge text-xs font-semibold uppercase border ${
-                filter === 'service' ? 'bg-gauge-yellow text-black border-gauge-yellow' : 'bg-panel text-slate-400 border-panel-border'
+                filter === 'service' ? 'bg-gauge-yellow text-black border-gauge-yellow' : 'bg-panel text-ink-muted border-panel-border'
               }`}
             >
               🔧 Servis
@@ -69,10 +69,10 @@ function MapPage() {
         </div>
 
         {loading ? (
-          <p className="text-slate-500 font-mono-gauge">Načítám...</p>
+          <p className="text-ink-muted font-mono-gauge">Načítám...</p>
         ) : filteredPoints.length === 0 ? (
           <div className="bg-panel border border-panel-border rounded-xl p-8 text-center">
-            <p className="text-slate-500 font-mono-gauge">
+            <p className="text-ink-muted font-mono-gauge">
               Zatím žádná místa s polohou. Přidej tankování nebo servis s povolenou GPS polohou.
             </p>
           </div>

@@ -53,5 +53,5 @@ app.listen(PORT, () => {
 });
 
 cron.schedule('0 8 * * *', () => {
-  checkReminders();
+  return checkReminders().catch((error) => console.error('Kontrola připomínek selhala:', error));
 });

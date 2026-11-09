@@ -33,32 +33,32 @@ function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <p className="text-gauge-yellow font-mono-gauge text-xs uppercase tracking-[0.3em] mb-1">Nastartuj</p>
-          <h1 className="text-3xl font-display font-bold text-white">AutoApp</h1>
+          <h1 className="text-3xl font-display font-bold text-ink">AutoApp</h1>
         </div>
 
         <div className="bg-panel border border-panel-border rounded-xl p-8">
-          <h2 className="text-white font-display font-semibold text-lg mb-6 uppercase tracking-wider">Přihlášení</h2>
+          <h2 className="text-ink font-display font-semibold text-lg mb-6 uppercase tracking-wider">Přihlášení</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">E-mail</label>
+              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">E-mail</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
               />
             </div>
 
             <div>
-              <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Heslo</label>
+              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Heslo</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
               />
             </div>
 
@@ -77,7 +77,7 @@ function LoginPage() {
             </button>
           </form>
 
-          <p className="text-slate-500 text-sm mt-6 text-center font-mono-gauge">
+          <p className="text-ink-muted text-sm mt-6 text-center font-mono-gauge">
             Nemáš účet?{' '}
             <Link to="/register" className="text-gauge-yellow hover:underline">
               Zaregistruj se
@@ -86,7 +86,7 @@ function LoginPage() {
         </div>
 
         <p className="text-center mt-4">
-          <Link to="/forgot-password" className="text-slate-600 hover:text-slate-400 text-xs font-mono-gauge">
+          <Link to="/forgot-password" className="text-ink-muted hover:text-ink text-xs font-mono-gauge">
             Zapomenuté heslo?
           </Link>
         </p>

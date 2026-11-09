@@ -68,7 +68,9 @@ function DashboardPage() {
   const avgMonthly = monthlyValues.length > 0
     ? monthlyValues.reduce((a, b) => a + b, 0) / monthlyValues.length
     : 5000;
-  const currentMonth = monthlyValues[monthlyValues.length - 1] || 0;
+  const today = new Date();
+  const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const currentMonth = dashboard?.monthlyStats.find((month) => month.month === monthKey)?.total ?? 0;
   const gaugeMax = Math.max(avgMonthly * 1.5, currentMonth * 1.1, 5000);
 
   return (

@@ -25,7 +25,7 @@ function AddServiceModal({ carId, onClose, onCreated }: Props) {
   const [loading, setLoading] = useState(false);
 
   function handleLocationChange(lat: number, lng: number, placeName?: string) {
-    setForm({ ...form, latitude: lat, longitude: lng, placeName: placeName ?? form.placeName });
+    setForm((current) => ({ ...current, latitude: lat, longitude: lng, placeName }));
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -47,16 +47,16 @@ function AddServiceModal({ carId, onClose, onCreated }: Props) {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
       <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <h2 className="text-white font-display font-semibold text-lg mb-4 uppercase tracking-wider">Servisní záznam</h2>
+        <h2 className="text-ink font-display font-semibold text-lg mb-4 uppercase tracking-wider">Servisní záznam</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Typ opravy *</label>
+            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Typ opravy *</label>
             <select
               required
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
             >
               <option value="">Vyber typ</option>
               {SERVICE_TYPES.map((t) => (
@@ -67,45 +67,45 @@ function AddServiceModal({ carId, onClose, onCreated }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Datum *</label>
+              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Datum *</label>
               <input
                 type="date"
                 required
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
               />
             </div>
             <div>
-              <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Cena (Kč)</label>
+              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Cena (Kč)</label>
               <input
                 type="number"
                 min={0}
                 value={form.price || ''}
                 onChange={(e) => setForm({ ...form, price: e.target.value ? Number(e.target.value) : undefined })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Stav tachometru (km)</label>
+            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Stav tachometru (km)</label>
             <input
               type="number"
               min={0}
               value={form.mileage || ''}
               onChange={(e) => setForm({ ...form, mileage: e.target.value ? Number(e.target.value) : undefined })}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
             />
           </div>
 
           <div>
-            <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Poznámka</label>
+            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Poznámka</label>
             <textarea
               value={form.description || ''}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={2}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
             />
           </div>
 
@@ -139,7 +139,7 @@ function AddServiceModal({ carId, onClose, onCreated }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-panel-border text-slate-400 hover:text-white hover:border-slate-500 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+              className="flex-1 border border-panel-border text-ink-muted hover:text-ink hover:border-gauge-yellow py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
             >
               Zrušit
             </button>

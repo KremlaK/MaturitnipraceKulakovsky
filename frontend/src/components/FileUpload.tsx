@@ -33,7 +33,7 @@ function FileUpload({ label, accept = 'image/*,application/pdf', currentUrl, onU
 
   return (
     <div>
-      <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">{label}</label>
+      <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">{label}</label>
 
       {currentUrl && isImage && (
         <img src={currentUrl} alt="Náhled" className="w-full h-32 object-cover rounded mb-2 border border-panel-border" />
@@ -49,10 +49,10 @@ function FileUpload({ label, accept = 'image/*,application/pdf', currentUrl, onU
         accept={accept}
         onChange={handleChange}
         disabled={uploading}
-        className="w-full text-sm text-slate-400 font-mono-gauge file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-gauge-yellow file:text-black file:font-bold file:cursor-pointer hover:file:brightness-110 disabled:opacity-50"
+        className="w-full text-sm text-ink-muted font-mono-gauge file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-gauge-yellow file:text-black file:font-bold file:cursor-pointer hover:file:brightness-110 disabled:opacity-50"
       />
 
-      {uploading && <p className="text-slate-500 text-xs mt-1 font-mono-gauge">Nahrávám...</p>}
+      {uploading && <p className="text-ink-muted text-xs mt-1 font-mono-gauge">Nahrávám...</p>}
       {error && <p className="text-warning-red text-xs mt-1 font-mono-gauge">{error}</p>}
     </div>
   );

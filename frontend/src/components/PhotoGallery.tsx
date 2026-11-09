@@ -10,7 +10,7 @@ function PhotoGallery({ photos, onDelete }: Props) {
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null);
 
   if (photos.length === 0) {
-    return <p className="text-slate-500 font-mono-gauge text-sm">Zatím žádné fotky v galerii.</p>;
+    return <p className="text-ink-muted font-mono-gauge text-sm">Zatím žádné fotky v galerii.</p>;
   }
 
   return (

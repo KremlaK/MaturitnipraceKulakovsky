@@ -1,3 +1,4 @@
+const { fuelConsumption } = require('../utils/fuelConsumption');
 const express = require('express');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
@@ -53,23 +54,7 @@ router.get('/:carId/stats', async (req, res) => {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
 
-    const fullTankSorted = fuelRecords
-      .filter((r) => r.fullTank)
-      .sort((a, b) => a.mileage - b.mileage);
-
-    const consumptionTrend = [];
-    for (let i = 1; i < fullTankSorted.length; i++) {
-      const prev = fullTankSorted[i - 1];
-      const curr = fullTankSorted[i];
-      const km = curr.mileage - prev.mileage;
-      if (km > 0) {
-        const consumption = Math.round((curr.liters / km) * 100 * 100) / 100;
-        consumptionTrend.push({
-          date: new Date(curr.date).toISOString().slice(0, 10),
-          consumption,
-        });
-      }
-    }
+    const { trend: consumptionTrend } = fuelConsumption(fuelRecords);
 
     res.json({ monthlyStats, categoryStats, consumptionTrend });
   } catch (error) {

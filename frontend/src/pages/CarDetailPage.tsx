@@ -143,7 +143,7 @@ function CarDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-asphalt flex items-center justify-center">
-        <p className="text-slate-500 font-mono-gauge">Načítám...</p>
+        <p className="text-ink-muted font-mono-gauge">Načítám...</p>
       </div>
     );
   }
@@ -151,7 +151,7 @@ function CarDetailPage() {
   if (!car) {
     return (
       <div className="min-h-screen bg-asphalt flex items-center justify-center">
-        <p className="text-white font-mono-gauge">Auto nenalezeno.</p>
+        <p className="text-ink font-mono-gauge">Auto nenalezeno.</p>
       </div>
     );
   }
@@ -160,24 +160,24 @@ function CarDetailPage() {
     <div className="min-h-screen bg-asphalt p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-4">
-          <Link to="/dashboard" className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge">
+          <Link to="/dashboard" className="text-ink-muted hover:text-gauge-yellow text-sm font-mono-gauge">
             ← Zpět do garáže
           </Link>
           <div className="flex gap-3 items-center flex-wrap justify-end">
             {car.isOwner === false && car.myRole && (
-              <span className="text-slate-500 text-xs font-mono-gauge border border-panel-border rounded px-2 py-1">
+              <span className="text-ink-muted text-xs font-mono-gauge border border-panel-border rounded px-2 py-1">
                 Sdíleno jako: {car.myRole === 'SPOLUMAJITEL' ? 'Spolumajitel' : 'Servis'}
               </span>
             )}
             <button
               onClick={() => handleExport('pdf')}
-              className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge"
+              className="text-ink-muted hover:text-gauge-yellow text-sm font-mono-gauge"
             >
               📄 PDF
             </button>
             <button
               onClick={() => handleExport('excel')}
-              className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge"
+              className="text-ink-muted hover:text-gauge-yellow text-sm font-mono-gauge"
             >
               📊 Excel
             </button>
@@ -185,13 +185,13 @@ function CarDetailPage() {
               <>
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="text-slate-500 hover:text-gauge-yellow text-sm font-mono-gauge"
+                  className="text-ink-muted hover:text-gauge-yellow text-sm font-mono-gauge"
                 >
                   👥 Sdílet
                 </button>
                 <button
                   onClick={() => setShowEditModal(true)}
-                  className="text-slate-500 hover:text-white text-sm font-mono-gauge"
+                  className="text-ink-muted hover:text-ink text-sm font-mono-gauge"
                 >
                   ✏️ Upravit
                 </button>
@@ -214,10 +214,10 @@ function CarDetailPage() {
                 <p className="text-gauge-yellow text-xs uppercase tracking-widest font-mono-gauge mb-1">
                   Technický průkaz
                 </p>
-                <h1 className="text-2xl font-display font-bold text-white">{car.make} {car.model}</h1>
+                <h1 className="text-2xl font-display font-bold text-ink">{car.make} {car.model}</h1>
               </div>
               {car.licensePlate && (
-                <div className="border-2 border-panel-border rounded px-3 py-1.5 font-mono-gauge text-white font-bold tracking-wider">
+                <div className="border-2 border-panel-border rounded px-3 py-1.5 font-mono-gauge text-ink font-bold tracking-wider">
                   {car.licensePlate}
                 </div>
               )}
@@ -225,16 +225,16 @@ function CarDetailPage() {
 
             <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-panel-border">
               <div>
-                <p className="text-slate-500 text-xs uppercase tracking-wider">Rok</p>
-                <p className="font-mono-gauge text-white">{car.year || '—'}</p>
+                <p className="text-ink-muted text-xs uppercase tracking-wider">Rok</p>
+                <p className="font-mono-gauge text-ink">{car.year || '—'}</p>
               </div>
               <div>
-                <p className="text-slate-500 text-xs uppercase tracking-wider">Nájezd</p>
-                <p className="font-mono-gauge text-white">{car.mileage?.toLocaleString('cs-CZ')} km</p>
+                <p className="text-ink-muted text-xs uppercase tracking-wider">Nájezd</p>
+                <p className="font-mono-gauge text-ink">{car.mileage?.toLocaleString('cs-CZ')} km</p>
               </div>
               <div>
-                <p className="text-slate-500 text-xs uppercase tracking-wider">VIN</p>
-                <p className="font-mono-gauge text-white text-sm">{car.vin || '—'}</p>
+                <p className="text-ink-muted text-xs uppercase tracking-wider">VIN</p>
+                <p className="font-mono-gauge text-ink text-sm">{car.vin || '—'}</p>
               </div>
             </div>
           </div>
@@ -242,27 +242,27 @@ function CarDetailPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <div className="bg-panel border border-panel-border rounded-lg p-3 text-center">
-            <p className="text-slate-500 text-xs uppercase tracking-wider">Spotřeba</p>
+            <p className="text-ink-muted text-xs uppercase tracking-wider">Spotřeba</p>
             <p className="font-mono-gauge text-gauge-yellow font-bold text-lg">
               {fuelStats?.averageConsumption !== null && fuelStats?.averageConsumption !== undefined
                 ? `${fuelStats.averageConsumption}` : '—'}
-              <span className="text-xs text-slate-500 ml-1">l/100</span>
+              <span className="text-xs text-ink-muted ml-1">l/100</span>
             </p>
           </div>
           <div className="bg-panel border border-panel-border rounded-lg p-3 text-center">
-            <p className="text-slate-500 text-xs uppercase tracking-wider">Palivo</p>
-            <p className="font-mono-gauge text-white font-bold text-lg">
+            <p className="text-ink-muted text-xs uppercase tracking-wider">Palivo</p>
+            <p className="font-mono-gauge text-ink font-bold text-lg">
               {(fuelStats?.totalSpent || 0).toLocaleString('cs-CZ')}
             </p>
           </div>
           <div className="bg-panel border border-panel-border rounded-lg p-3 text-center">
-            <p className="text-slate-500 text-xs uppercase tracking-wider">Servis+Výd.</p>
-            <p className="font-mono-gauge text-white font-bold text-lg">
+            <p className="text-ink-muted text-xs uppercase tracking-wider">Servis+Výd.</p>
+            <p className="font-mono-gauge text-ink font-bold text-lg">
               {(totalServiceCost + totalExpensesCost).toLocaleString('cs-CZ')}
             </p>
           </div>
           <div className="bg-panel border border-gauge-yellow/40 rounded-lg p-3 text-center">
-            <p className="text-slate-500 text-xs uppercase tracking-wider">Celkem</p>
+            <p className="text-ink-muted text-xs uppercase tracking-wider">Celkem</p>
             <p className="font-mono-gauge text-gauge-orange font-bold text-lg">
               {totalOverallCost.toLocaleString('cs-CZ')}
             </p>
@@ -277,7 +277,7 @@ function CarDetailPage() {
               className={`px-4 py-2 rounded font-mono-gauge text-sm font-semibold uppercase tracking-wide whitespace-nowrap border transition ${
                 activeTab === tab.id
                   ? 'bg-gauge-yellow text-black border-gauge-yellow'
-                  : 'bg-panel text-slate-400 border-panel-border hover:border-slate-500'
+                  : 'bg-panel text-ink-muted border-panel-border hover:border-gauge-yellow/50'
               }`}
             >
               {tab.icon} {tab.label}
@@ -288,7 +288,7 @@ function CarDetailPage() {
         {activeTab === 'service' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-white font-display font-semibold uppercase tracking-wider text-sm">Servisní knížka</h2>
+              <h2 className="text-ink font-display font-semibold uppercase tracking-wider text-sm">Servisní knížka</h2>
               <button
                 onClick={() => setShowServiceModal(true)}
                 className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
@@ -298,19 +298,19 @@ function CarDetailPage() {
             </div>
 
             {records.length === 0 ? (
-              <p className="text-slate-500 font-mono-gauge text-sm">Zatím žádné servisní záznamy.</p>
+              <p className="text-ink-muted font-mono-gauge text-sm">Zatím žádné servisní záznamy.</p>
             ) : (
               <div className="space-y-2">
                 {records.map((record) => (
                   <div key={record.id} className="bg-panel border border-panel-border rounded-lg p-4 flex justify-between items-start">
                     <div>
-                      <h3 className="text-white font-display font-semibold">{record.type}</h3>
-                      <p className="text-slate-500 text-xs font-mono-gauge mt-1">
+                      <h3 className="text-ink font-display font-semibold">{record.type}</h3>
+                      <p className="text-ink-muted text-xs font-mono-gauge mt-1">
                         {new Date(record.date).toLocaleDateString('cs-CZ')}
                         {record.mileage && ` • ${record.mileage.toLocaleString('cs-CZ')} km`}
                       </p>
                       {record.description && (
-                        <p className="text-slate-400 text-sm mt-1">{record.description}</p>
+                        <p className="text-ink-muted text-sm mt-1">{record.description}</p>
                       )}
                       <div className="flex gap-3 mt-2">
                         {record.invoiceUrl && (
@@ -327,11 +327,11 @@ function CarDetailPage() {
                     </div>
                     <div className="text-right">
                       {record.price && (
-                        <p className="text-white font-mono-gauge font-semibold">{record.price.toLocaleString('cs-CZ')} Kč</p>
+                        <p className="text-ink font-mono-gauge font-semibold">{record.price.toLocaleString('cs-CZ')} Kč</p>
                       )}
                       <button
                         onClick={() => handleDeleteRecord(record.id)}
-                        className="text-slate-600 hover:text-warning-red text-xs mt-1"
+                        className="text-ink-muted hover:text-warning-red text-xs mt-1"
                       >
                         Smazat
                       </button>
@@ -346,7 +346,7 @@ function CarDetailPage() {
         {activeTab === 'fuel' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-white font-display font-semibold uppercase tracking-wider text-sm">Tankování</h2>
+              <h2 className="text-ink font-display font-semibold uppercase tracking-wider text-sm">Tankování</h2>
               <button
                 onClick={() => setShowFuelModal(true)}
                 className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
@@ -356,27 +356,27 @@ function CarDetailPage() {
             </div>
 
             {fuelRecords.length === 0 ? (
-              <p className="text-slate-500 font-mono-gauge text-sm">Zatím žádné záznamy tankování.</p>
+              <p className="text-ink-muted font-mono-gauge text-sm">Zatím žádné záznamy tankování.</p>
             ) : (
               <div className="space-y-2">
                 {fuelRecords.map((record) => (
                   <div key={record.id} className="bg-panel border border-panel-border rounded-lg p-4 flex justify-between items-start">
                     <div>
-                      <h3 className="text-white font-display font-semibold">
-                        {record.fuelType} {!record.fullTank && <span className="text-slate-500 text-xs">(částečné)</span>}
+                      <h3 className="text-ink font-display font-semibold">
+                        {record.fuelType} {!record.fullTank && <span className="text-ink-muted text-xs">(částečné)</span>}
                       </h3>
-                      <p className="text-slate-500 text-xs font-mono-gauge mt-1">
+                      <p className="text-ink-muted text-xs font-mono-gauge mt-1">
                         {new Date(record.date).toLocaleDateString('cs-CZ')} • {record.mileage.toLocaleString('cs-CZ')} km
                       </p>
-                      <p className="text-slate-500 text-xs font-mono-gauge">
+                      <p className="text-ink-muted text-xs font-mono-gauge">
                         {record.liters} l × {record.pricePerLiter} Kč/l
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-mono-gauge font-semibold">{record.totalPrice.toLocaleString('cs-CZ')} Kč</p>
+                      <p className="text-ink font-mono-gauge font-semibold">{record.totalPrice.toLocaleString('cs-CZ')} Kč</p>
                       <button
                         onClick={() => handleDeleteFuel(record.id)}
-                        className="text-slate-600 hover:text-warning-red text-xs mt-1"
+                        className="text-ink-muted hover:text-warning-red text-xs mt-1"
                       >
                         Smazat
                       </button>
@@ -391,7 +391,7 @@ function CarDetailPage() {
         {activeTab === 'expenses' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-white font-display font-semibold uppercase tracking-wider text-sm">Výdaje</h2>
+              <h2 className="text-ink font-display font-semibold uppercase tracking-wider text-sm">Výdaje</h2>
               <button
                 onClick={() => setShowExpenseModal(true)}
                 className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
@@ -401,25 +401,25 @@ function CarDetailPage() {
             </div>
 
             {expenses.length === 0 ? (
-              <p className="text-slate-500 font-mono-gauge text-sm">Zatím žádné výdaje.</p>
+              <p className="text-ink-muted font-mono-gauge text-sm">Zatím žádné výdaje.</p>
             ) : (
               <div className="space-y-2">
                 {expenses.map((expense) => (
                   <div key={expense.id} className="bg-panel border border-panel-border rounded-lg p-4 flex justify-between items-start">
                     <div>
-                      <h3 className="text-white font-display font-semibold">{EXPENSE_CATEGORY_LABELS[expense.category]}</h3>
-                      <p className="text-slate-500 text-xs font-mono-gauge mt-1">
+                      <h3 className="text-ink font-display font-semibold">{EXPENSE_CATEGORY_LABELS[expense.category]}</h3>
+                      <p className="text-ink-muted text-xs font-mono-gauge mt-1">
                         {new Date(expense.date).toLocaleDateString('cs-CZ')}
                       </p>
                       {expense.description && (
-                        <p className="text-slate-400 text-sm mt-1">{expense.description}</p>
+                        <p className="text-ink-muted text-sm mt-1">{expense.description}</p>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-mono-gauge font-semibold">{expense.price.toLocaleString('cs-CZ')} Kč</p>
+                      <p className="text-ink font-mono-gauge font-semibold">{expense.price.toLocaleString('cs-CZ')} Kč</p>
                       <button
                         onClick={() => handleDeleteExpense(expense.id)}
-                        className="text-slate-600 hover:text-warning-red text-xs mt-1"
+                        className="text-ink-muted hover:text-warning-red text-xs mt-1"
                       >
                         Smazat
                       </button>
@@ -438,7 +438,7 @@ function CarDetailPage() {
         {activeTab === 'reminders' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-white font-display font-semibold uppercase tracking-wider text-sm">Kontrolky</h2>
+              <h2 className="text-ink font-display font-semibold uppercase tracking-wider text-sm">Kontrolky</h2>
               <button
                 onClick={() => setShowReminderModal(true)}
                 className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
@@ -448,7 +448,7 @@ function CarDetailPage() {
             </div>
 
             {reminders.length === 0 ? (
-              <p className="text-slate-500 font-mono-gauge text-sm">Zatím žádné připomínky.</p>
+              <p className="text-ink-muted font-mono-gauge text-sm">Zatím žádné připomínky.</p>
             ) : (
               <div className="space-y-2">
                 {reminders.map((reminder) => {
@@ -468,26 +468,26 @@ function CarDetailPage() {
                           className="w-5 h-5 mt-1 accent-gauge-yellow"
                         />
                         <div>
-                          <h3 className="text-white font-display font-semibold">
+                          <h3 className="text-ink font-display font-semibold">
                             {reminder.title}
-                            <span className="text-slate-600 text-xs ml-2 font-mono-gauge">({REMINDER_TYPE_LABELS[reminder.type]})</span>
+                            <span className="text-ink-muted text-xs ml-2 font-mono-gauge">({REMINDER_TYPE_LABELS[reminder.type]})</span>
                           </h3>
                           <div className="flex gap-3 text-xs font-mono-gauge mt-1">
                             {reminder.dueDate && (
-                              <span className={dateInfo.urgent && !reminder.completed ? 'text-warning-red font-semibold' : 'text-slate-500'}>
+                              <span className={dateInfo.urgent && !reminder.completed ? 'text-warning-red font-semibold' : 'text-ink-muted'}>
                                 📅 {new Date(reminder.dueDate).toLocaleDateString('cs-CZ')} {!reminder.completed && `(${dateInfo.text})`}
                               </span>
                             )}
                             {reminder.dueMileage && (
-                              <span className="text-slate-500">🔧 {reminder.dueMileage.toLocaleString('cs-CZ')} km</span>
+                              <span className="text-ink-muted">🔧 {reminder.dueMileage.toLocaleString('cs-CZ')} km</span>
                             )}
                           </div>
-                          {reminder.notes && <p className="text-slate-400 text-sm mt-1">{reminder.notes}</p>}
+                          {reminder.notes && <p className="text-ink-muted text-sm mt-1">{reminder.notes}</p>}
                         </div>
                       </div>
                       <button
                         onClick={() => handleDeleteReminder(reminder.id)}
-                        className="text-slate-600 hover:text-warning-red text-xs"
+                        className="text-ink-muted hover:text-warning-red text-xs"
                       >
                         Smazat
                       </button>
@@ -502,7 +502,7 @@ function CarDetailPage() {
         {activeTab === 'gallery' && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-white font-display font-semibold uppercase tracking-wider text-sm">Galerie</h2>
+              <h2 className="text-ink font-display font-semibold uppercase tracking-wider text-sm">Galerie</h2>
               <button
                 onClick={() => setShowPhotoModal(true)}
                 className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"

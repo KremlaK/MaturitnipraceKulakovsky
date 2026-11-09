@@ -35,16 +35,16 @@ function AddExpenseModal({ carId, onClose, onCreated }: Props) {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
       <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-white font-display font-semibold text-lg mb-4 uppercase tracking-wider">Nový výdaj</h2>
+        <h2 className="text-ink font-display font-semibold text-lg mb-4 uppercase tracking-wider">Nový výdaj</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Kategorie *</label>
+            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Kategorie *</label>
             <select
               required
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value as ExpenseCategory })}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
             >
               {Object.entries(EXPENSE_CATEGORY_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -54,35 +54,35 @@ function AddExpenseModal({ carId, onClose, onCreated }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Datum *</label>
+              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Datum *</label>
               <input
                 type="date"
                 required
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
               />
             </div>
             <div>
-              <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Cena (Kč) *</label>
+              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Cena (Kč) *</label>
               <input
                 type="number"
                 required
                 min={0}
                 value={form.price || ''}
                 onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">Poznámka</label>
+            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Poznámka</label>
             <textarea
               value={form.description || ''}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={2}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
             />
           </div>
 
@@ -96,7 +96,7 @@ function AddExpenseModal({ carId, onClose, onCreated }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-panel-border text-slate-400 hover:text-white hover:border-slate-500 py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+              className="flex-1 border border-panel-border text-ink-muted hover:text-ink hover:border-gauge-yellow py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
             >
               Zrušit
             </button>
