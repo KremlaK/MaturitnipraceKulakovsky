@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { updateCar, type Car, type CarInput } from '../api/cars';
 import { CAR_MAKES, CAR_MAKE_NAMES } from '../data/carMakes';
 import FileUpload from './FileUpload';
+import { getErrorMessage } from '../api/axios';
 
 interface Props {
   car: Car;
@@ -39,28 +40,28 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
       await updateCar(car.id, form);
       onUpdated();
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Něco se pokazilo.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Něco se pokazilo.'));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
-      <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center sm:px-4 z-50">
+      <div className="bg-panel border border-panel-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 w-full sm:max-w-md max-h-[92vh] overflow-y-auto pb-[max(20px,env(safe-area-inset-bottom))]">
         <h2 className="text-ink font-display font-semibold text-lg mb-4 uppercase tracking-wider">Upravit auto</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Značka *</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Značka *</label>
               {isKnownMake ? (
                 <select
                   required
                   value={form.make}
                   onChange={(e) => handleMakeChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                  className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
                 >
                   {CAR_MAKE_NAMES.map((make) => (
                     <option key={make} value={make}>{make}</option>
@@ -72,18 +73,18 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
                   required
                   value={form.make}
                   onChange={(e) => setForm({ ...form, make: e.target.value })}
-                  className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                  className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
                 />
               )}
             </div>
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Model *</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Model *</label>
               {isKnownMake && availableModels.length > 0 ? (
                 <select
                   required
                   value={form.model}
                   onChange={(e) => setForm({ ...form, model: e.target.value })}
-                  className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                  className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
                 >
                   <option value="">Vyber model</option>
                   {availableModels.map((model) => (
@@ -96,7 +97,7 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
                   required
                   value={form.model}
                   onChange={(e) => setForm({ ...form, model: e.target.value })}
-                  className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                  className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
                 />
               )}
             </div>
@@ -104,11 +105,11 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Rok výroby</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Rok výroby</label>
               <select
                 value={form.year || ''}
                 onChange={(e) => setForm({ ...form, year: e.target.value ? Number(e.target.value) : undefined })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
               >
                 <option value="">Vyber rok</option>
                 {Array.from({ length: 40 }, (_, i) => new Date().getFullYear() - i).map((y) => (
@@ -117,44 +118,44 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
               </select>
             </div>
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Nájezd (km)</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Nájezd (km)</label>
               <input
                 type="number"
                 min={0}
                 value={form.mileage || ''}
                 onChange={(e) => setForm({ ...form, mileage: e.target.value ? Number(e.target.value) : undefined })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">SPZ</label>
+            <label className="block label-caps text-xs text-ink-muted mb-1">SPZ</label>
             <input
               type="text"
               value={form.licensePlate || ''}
               onChange={(e) => setForm({ ...form, licensePlate: e.target.value.toUpperCase() })}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
             />
           </div>
 
           <div>
-            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">VIN</label>
+            <label className="block label-caps text-xs text-ink-muted mb-1">VIN</label>
             <input
               type="text"
               value={form.vin || ''}
               onChange={(e) => setForm({ ...form, vin: e.target.value.toUpperCase() })}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
             />
           </div>
 
           <div>
-            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Poznámky</label>
+            <label className="block label-caps text-xs text-ink-muted mb-1">Poznámky</label>
             <textarea
               value={form.notes || ''}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
               rows={2}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
             />
           </div>
 
@@ -175,14 +176,14 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-panel-border text-ink-muted hover:text-ink hover:border-gauge-yellow py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+              className="flex-1 border border-panel-border text-ink-muted hover:text-ink hover:border-accent py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
             >
               Zrušit
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-gauge-yellow hover:brightness-110 text-black py-2 rounded font-mono-gauge font-bold text-sm uppercase tracking-wider disabled:opacity-50"
+              className="flex-1 bg-accent hover:brightness-110 text-on-accent py-2 rounded font-mono-gauge font-bold text-sm uppercase tracking-wider disabled:opacity-50"
             >
               {loading ? 'Ukládám...' : 'Uložit'}
             </button>

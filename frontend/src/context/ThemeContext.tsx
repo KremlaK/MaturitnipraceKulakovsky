@@ -11,13 +11,21 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme');
-    return saved === 'light' ? 'light' : 'dark';
+    // Výchozí je světlý motiv; tmavý jen když si ho uživatel dřív vybral
+    try {
+      return localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+    } catch {
+      return 'light';
+    }
   });
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
+    try {
+      localStorage.setItem('theme', theme);
+    } catch {
+      // soukromé okno apod. – motiv se jen nezapamatuje
+    }
   }, [theme]);
 
   function toggleTheme() {
@@ -31,6 +39,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Hook patří k provideru; Fast Refresh tu jen udělá plný reload
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {

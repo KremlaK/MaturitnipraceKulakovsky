@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { createFuelRecord, type FuelRecordInput } from '../api/fuel';
 import LocationPicker from './LocationPicker';
+import { getErrorMessage } from '../api/axios';
 
 const FUEL_TYPES = ['Natural 95', 'Natural 98', 'Nafta', 'LPG', 'CNG', 'Elektřina'];
 
@@ -41,37 +42,37 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
       await createFuelRecord(carId, form);
       onCreated();
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Něco se pokazilo.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Něco se pokazilo.'));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
-      <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center sm:px-4 z-50">
+      <div className="bg-panel border border-panel-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 w-full sm:max-w-md max-h-[92vh] overflow-y-auto pb-[max(20px,env(safe-area-inset-bottom))]">
         <h2 className="text-ink font-display font-semibold text-lg mb-4 uppercase tracking-wider">Tankování</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Datum *</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Datum *</label>
               <input
                 type="date"
                 required
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
               />
             </div>
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Typ paliva *</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Typ paliva *</label>
               <select
                 required
                 value={form.fuelType}
                 onChange={(e) => setForm({ ...form, fuelType: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
               >
                 {FUEL_TYPES.map((t) => (
                   <option key={t} value={t}>{t}</option>
@@ -82,7 +83,7 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Litry *</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Litry *</label>
               <input
                 type="number"
                 required
@@ -90,11 +91,11 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
                 step="0.01"
                 value={form.liters || ''}
                 onChange={(e) => setForm({ ...form, liters: Number(e.target.value) })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
               />
             </div>
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Cena za litr *</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Cena za litr *</label>
               <input
                 type="number"
                 required
@@ -102,25 +103,25 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
                 step="0.01"
                 value={form.pricePerLiter || ''}
                 onChange={(e) => setForm({ ...form, pricePerLiter: Number(e.target.value) })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
               />
             </div>
           </div>
 
           <div className="bg-asphalt-light border border-panel-border rounded px-3 py-2 text-center">
             <span className="text-ink-muted text-xs font-mono-gauge">CELKEM: </span>
-            <span className="text-gauge-yellow font-mono-gauge font-bold">{totalPrice} Kč</span>
+            <span className="text-accent font-mono-gauge font-bold">{totalPrice} Kč</span>
           </div>
 
           <div>
-            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Stav tachometru (km) *</label>
+            <label className="block label-caps text-xs text-ink-muted mb-1">Stav tachometru (km) *</label>
             <input
               type="number"
               required
               min={0}
               value={form.mileage || ''}
               onChange={(e) => setForm({ ...form, mileage: Number(e.target.value) })}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
             />
           </div>
 
@@ -129,7 +130,7 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
               type="checkbox"
               checked={form.fullTank}
               onChange={(e) => setForm({ ...form, fullTank: e.target.checked })}
-              className="w-4 h-4 accent-gauge-yellow"
+              className="w-4 h-4 accent-accent"
             />
             Tankoval jsem do plna
           </label>
@@ -153,14 +154,14 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-panel-border text-ink-muted hover:text-ink hover:border-gauge-yellow py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+              className="flex-1 border border-panel-border text-ink-muted hover:text-ink hover:border-accent py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
             >
               Zrušit
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-gauge-yellow hover:brightness-110 text-black py-2 rounded font-mono-gauge font-bold text-sm uppercase tracking-wider disabled:opacity-50"
+              className="flex-1 bg-accent hover:brightness-110 text-on-accent py-2 rounded font-mono-gauge font-bold text-sm uppercase tracking-wider disabled:opacity-50"
             >
               {loading ? 'Ukládám...' : 'Přidat'}
             </button>

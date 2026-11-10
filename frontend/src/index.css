@@ -1,49 +1,91 @@
 @import "tailwindcss";
 
-@theme {
-  --font-display: "Space Grotesk", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+/* Tmavý motiv se zapíná atributem data-theme="dark" na <html> (ThemeContext) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+@theme {
+  --font-sans: "Barlow", system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Barlow", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Názvy tokenů: asphalt = pozadí stránky, asphalt-light = pole formulářů,
+     panel = karty, panel-border = linky, ink = text, accent = jediná výrazná barva */
   --color-asphalt: var(--c-asphalt);
   --color-asphalt-light: var(--c-asphalt-light);
   --color-panel: var(--c-panel);
   --color-panel-border: var(--c-panel-border);
   --color-ink: var(--c-ink);
   --color-ink-muted: var(--c-ink-muted);
-
-  --color-gauge-yellow: #ffcc00;
-  --color-gauge-orange: #ff5500;
-  --color-racing-green: #00443a;
-  --color-warning-red: #e6342a;
+  --color-accent: var(--c-accent);
+  --color-accent-soft: var(--c-accent-soft);
+  --color-on-accent: var(--c-on-accent);
+  --color-warning-red: var(--c-danger);
+  --color-ok: var(--c-ok);
 }
 
-/* Tmavý motiv (výchozí) */
+/* Světlý motiv (výchozí): výkresový papír */
 :root {
-  --c-asphalt: #121212;
-  --c-asphalt-light: #1c1c1c;
-  --c-panel: #1a1a1a;
-  --c-panel-border: #2e2e2e;
-  --c-ink: #ffffff;
-  --c-ink-muted: #94a3b8;
+  --c-asphalt: #f6f4ef;
+  --c-asphalt-light: #efece5;
+  --c-panel: #fbfaf7;
+  --c-panel-border: #d9d3c7;
+  --c-grid: #e4dfd4;
+  --c-ink: #23211e;
+  --c-ink-muted: #5f5a52;
+  --c-accent: #b5370f;
+  --c-accent-soft: #f6e3da;
+  --c-on-accent: #ffffff;
+  --c-danger: #a3241a;
+  --c-ok: #2f6b4f;
+  color-scheme: light;
 }
 
-/* Světlý motiv */
-:root[data-theme="light"] {
-  --c-asphalt: #f0f0ee;
-  --c-asphalt-light: #e6e6e2;
-  --c-panel: #ffffff;
-  --c-panel-border: #d8d8d4;
-  --c-ink: #121212;
-  --c-ink-muted: #57534e;
+/* Tmavý motiv */
+:root[data-theme="dark"] {
+  --c-asphalt: #15171a;
+  --c-asphalt-light: #1f2226;
+  --c-panel: #1b1e22;
+  --c-panel-border: #34383e;
+  --c-grid: #24272c;
+  --c-ink: #e9e5dc;
+  --c-ink-muted: #a39d92;
+  --c-accent: #ff7a45;
+  --c-accent-soft: #3a2219;
+  --c-on-accent: #1a0d07;
+  --c-danger: #ff8a7a;
+  --c-ok: #7fc8a3;
+  color-scheme: dark;
 }
 
 body {
-  background-color: var(--color-asphalt);
-  font-family: var(--font-display);
+  background-color: var(--c-asphalt);
+  background-image: radial-gradient(var(--c-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  color: var(--c-ink);
+  font-family: var(--font-sans);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Čísla: monospace se zarovnanými číslicemi (km, Kč, litry, data v tabulkách) */
 .font-mono-gauge {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* Čísla uvnitř běžného textu: stejné písmo, jen zarovnané číslice */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Popisky ve stylu technického výkresu */
+.label-caps {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
 }

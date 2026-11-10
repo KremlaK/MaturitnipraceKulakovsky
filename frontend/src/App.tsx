@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import CarDetailPage from './pages/CarDetailPage';
 import DashboardPage from './pages/DashboardPage';
 import MapPage from './pages/MapPage';
+import CarsPage from './pages/CarsPage';
 import AccountActionPage from './pages/AccountActionPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -13,8 +14,8 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-asphalt flex items-center justify-center">
-        <p className="text-ink">Načítám...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-ink-muted">Načítám…</p>
       </div>
     );
   }
@@ -42,6 +43,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <DashboardPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/cars"
+              element={
+                <PrivateRoute>
+                  <CarsPage />
                 </PrivateRoute>
               }
             />

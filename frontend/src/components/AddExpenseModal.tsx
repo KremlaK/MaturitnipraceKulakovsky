@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { createExpense, EXPENSE_CATEGORY_LABELS, type ExpenseInput, type ExpenseCategory } from '../api/expenses';
+import { getErrorMessage } from '../api/axios';
 
 interface Props {
   carId: string;
@@ -25,26 +26,26 @@ function AddExpenseModal({ carId, onClose, onCreated }: Props) {
       await createExpense(carId, form);
       onCreated();
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Něco se pokazilo.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Něco se pokazilo.'));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
-      <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center sm:px-4 z-50">
+      <div className="bg-panel border border-panel-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 w-full sm:max-w-md max-h-[92vh] overflow-y-auto pb-[max(20px,env(safe-area-inset-bottom))]">
         <h2 className="text-ink font-display font-semibold text-lg mb-4 uppercase tracking-wider">Nový výdaj</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Kategorie *</label>
+            <label className="block label-caps text-xs text-ink-muted mb-1">Kategorie *</label>
             <select
               required
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value as ExpenseCategory })}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
             >
               {Object.entries(EXPENSE_CATEGORY_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -54,35 +55,35 @@ function AddExpenseModal({ carId, onClose, onCreated }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Datum *</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Datum *</label>
               <input
                 type="date"
                 required
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
               />
             </div>
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Cena (Kč) *</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Cena (Kč) *</label>
               <input
                 type="number"
                 required
                 min={0}
                 value={form.price || ''}
                 onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Poznámka</label>
+            <label className="block label-caps text-xs text-ink-muted mb-1">Poznámka</label>
             <textarea
               value={form.description || ''}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={2}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
             />
           </div>
 
@@ -96,14 +97,14 @@ function AddExpenseModal({ carId, onClose, onCreated }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-panel-border text-ink-muted hover:text-ink hover:border-gauge-yellow py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+              className="flex-1 border border-panel-border text-ink-muted hover:text-ink hover:border-accent py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
             >
               Zrušit
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-gauge-yellow hover:brightness-110 text-black py-2 rounded font-mono-gauge font-bold text-sm uppercase tracking-wider disabled:opacity-50"
+              className="flex-1 bg-accent hover:brightness-110 text-on-accent py-2 rounded font-mono-gauge font-bold text-sm uppercase tracking-wider disabled:opacity-50"
             >
               {loading ? 'Ukládám...' : 'Přidat'}
             </button>

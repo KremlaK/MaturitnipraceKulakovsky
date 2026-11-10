@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-lea
 import L from 'leaflet';
 import { searchPlaces, type PlaceSearchResult } from '../api/map';
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -111,7 +111,7 @@ function LocationPicker({ latitude, longitude, onChange }: Props) {
 
   return (
     <div>
-      <label className="block text-slate-500 text-xs uppercase tracking-wider mb-1 font-mono-gauge">
+      <label className="block label-caps text-xs text-ink-muted mb-1">
         Poloha {gpsStatus === 'loading' && '(zjišťuji GPS...)'}
         {gpsStatus === 'denied' && '(GPS nedostupné)'}
       </label>
@@ -123,10 +123,10 @@ function LocationPicker({ latitude, longitude, onChange }: Props) {
           onChange={(e) => handleQueryChange(e.target.value)}
           onFocus={() => results.length > 0 && setShowResults(true)}
           placeholder="Hledej čerpací stanici, servis, adresu..."
-          className="w-full px-3 py-2 rounded bg-asphalt-light text-white border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge text-sm"
+          className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge text-sm"
         />
         {searching && (
-          <span className="absolute right-3 top-2.5 text-slate-500 text-xs font-mono-gauge">...</span>
+          <span className="absolute right-3 top-2.5 text-ink-muted text-xs font-mono-gauge">...</span>
         )}
         {showResults && results.length > 0 && (
           <div className="absolute z-[1000] top-full left-0 right-0 mt-1 bg-panel border border-panel-border rounded max-h-48 overflow-y-auto">
@@ -135,7 +135,7 @@ function LocationPicker({ latitude, longitude, onChange }: Props) {
                 key={i}
                 type="button"
                 onClick={() => handleSelectResult(result)}
-                className="w-full text-left px-3 py-2 text-slate-300 hover:bg-asphalt-light text-xs font-mono-gauge border-b border-panel-border last:border-b-0"
+                className="w-full text-left px-3 py-2 text-ink-muted hover:bg-asphalt-light text-xs font-mono-gauge border-b border-panel-border last:border-b-0"
               >
                 {result.name}
               </button>
@@ -155,7 +155,7 @@ function LocationPicker({ latitude, longitude, onChange }: Props) {
           <RecenterMap position={position} />
         </MapContainer>
       </div>
-      <p className="text-slate-600 text-xs mt-1 font-mono-gauge">Nebo klikni přímo na mapu pro úpravu polohy.</p>
+      <p className="text-ink-muted text-xs mt-1 font-mono-gauge">Nebo klikni přímo na mapu pro úpravu polohy.</p>
     </div>
   );
 }

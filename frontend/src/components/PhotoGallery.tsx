@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PHOTO_CATEGORY_LABELS, type Photo } from '../api/photos';
+import Icon from './Icon';
 
 interface Props {
   photos: Photo[];
@@ -23,7 +24,7 @@ function PhotoGallery({ photos, onDelete }: Props) {
             onClick={() => setLightboxPhoto(photo)}
           >
             <img src={photo.url} alt={photo.caption || ''} className="w-full h-32 object-cover" />
-            <div className="absolute top-1 left-1 bg-black/70 text-gauge-yellow text-[10px] font-mono-gauge px-1.5 py-0.5 rounded uppercase">
+            <div className="absolute top-1 left-1 bg-black/70 text-accent text-[10px] font-mono-gauge px-1.5 py-0.5 rounded uppercase">
               {PHOTO_CATEGORY_LABELS[photo.category]}
             </div>
             <button
@@ -31,12 +32,13 @@ function PhotoGallery({ photos, onDelete }: Props) {
                 e.stopPropagation();
                 onDelete(photo.id);
               }}
-              className="absolute top-1 right-1 bg-black/70 text-slate-300 hover:text-warning-red w-6 h-6 rounded flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+              className="absolute top-1 right-1 bg-black/70 text-[#eee] hover:text-[#ff8a7a] w-8 h-8 rounded flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition"
+              aria-label="Smazat fotku"
             >
-              ✕
+              <Icon name="close" size={16} />
             </button>
             {photo.caption && (
-              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs px-2 py-1 truncate">
+              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-[#fff] text-xs px-2 py-1 truncate">
                 {photo.caption}
               </div>
             )}
@@ -51,9 +53,10 @@ function PhotoGallery({ photos, onDelete }: Props) {
         >
           <button
             onClick={() => setLightboxPhoto(null)}
-            className="absolute top-4 right-4 text-white text-2xl hover:text-gauge-yellow"
+            className="absolute top-4 right-4 text-[#fff] hover:text-accent"
+            aria-label="Zavřít"
           >
-            ✕
+            <Icon name="close" size={28} />
           </button>
           <img
             src={lightboxPhoto.url}

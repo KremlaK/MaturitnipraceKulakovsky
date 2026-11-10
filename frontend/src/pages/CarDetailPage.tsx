@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import AppShell from '../components/AppShell';
+import Icon, { type IconName } from '../components/Icon';
+import LicensePlate from '../components/LicensePlate';
 import { getCar, downloadCarExport, type Car } from '../api/cars';
 import { getServiceRecords, deleteServiceRecord, type ServiceRecord } from '../api/service';
 import { getFuelRecords, deleteFuelRecord, getFuelStats, type FuelRecord, type FuelStats } from '../api/fuel';
@@ -19,13 +22,13 @@ import PhotoGallery from '../components/PhotoGallery';
 
 type Tab = 'service' | 'fuel' | 'expenses' | 'stats' | 'reminders' | 'gallery';
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'service', label: 'Servis', icon: '🔧' },
-  { id: 'fuel', label: 'Tankování', icon: '⛽' },
-  { id: 'expenses', label: 'Výdaje', icon: '💰' },
-  { id: 'stats', label: 'Statistiky', icon: '📈' },
-  { id: 'reminders', label: 'Kontrolky', icon: '⏰' },
-  { id: 'gallery', label: 'Galerie', icon: '🖼️' },
+const TABS: { id: Tab; label: string; icon: IconName }[] = [
+  { id: 'service', label: 'Servis', icon: 'wrench' },
+  { id: 'fuel', label: 'Tankování', icon: 'fuel' },
+  { id: 'expenses', label: 'Výdaje', icon: 'receipt' },
+  { id: 'stats', label: 'Statistiky', icon: 'chart' },
+  { id: 'reminders', label: 'Připomínky', icon: 'bell' },
+  { id: 'gallery', label: 'Galerie', icon: 'camera' },
 ];
 
 function formatDaysUntil(dueDate: string | null): { text: string; urgent: boolean } {
@@ -58,20 +61,19 @@ function CarDetailPage() {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  async function loadData() {
-    if (!id) return;
-    setLoading(true);
-    try {
-      const [carData, recordsData, fuelData, statsData, expensesData, chartStats, remindersData, photosData] = await Promise.all([
-        getCar(id),
-        getServiceRecords(id),
-        getFuelRecords(id),
-        getFuelStats(id),
-        getExpenses(id),
-        getCarStats(id),
-        getReminders(id),
-        getPhotos(id),
-      ]);
+  // Stav se nastavuje až v callbacku po načtení, ne synchronně v efektu
+  const loadData = useCallback(() => {
+    if (!id) return Promise.resolve();
+    return Promise.all([
+      getCar(id),
+      getServiceRecords(id),
+      getFuelRecords(id),
+      getFuelStats(id),
+      getExpenses(id),
+      getCarStats(id),
+      getReminders(id),
+      getPhotos(id),
+    ]).then(([carData, recordsData, fuelData, statsData, expensesData, chartStats, remindersData, photosData]) => {
       setCar(carData);
       setRecords(recordsData);
       setFuelRecords(fuelData);
@@ -80,16 +82,14 @@ function CarDetailPage() {
       setCarStats(chartStats);
       setReminders(remindersData);
       setPhotos(photosData);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+    })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [id]);
 
   useEffect(() => {
     loadData();
-  }, [id]);
+  }, [loadData]);
 
   async function handleDeleteRecord(recordId: string) {
     if (!confirm('Opravdu smazat tento záznam?')) return;
@@ -140,28 +140,23 @@ function CarDetailPage() {
   const totalExpensesCost = expenses.reduce((sum, e) => sum + e.price, 0);
   const totalOverallCost = totalServiceCost + totalExpensesCost + (fuelStats?.totalSpent || 0);
 
-  if (loading) {
+  if (loading || !car) {
     return (
-      <div className="min-h-screen bg-asphalt flex items-center justify-center">
-        <p className="text-ink-muted font-mono-gauge">Načítám...</p>
-      </div>
+      <AppShell>
+        <p className="px-4 md:px-7 py-10 text-ink-muted">{loading ? 'Načítám…' : 'Auto nenalezeno.'}</p>
+      </AppShell>
     );
   }
 
-  if (!car) {
-    return (
-      <div className="min-h-screen bg-asphalt flex items-center justify-center">
-        <p className="text-ink font-mono-gauge">Auto nenalezeno.</p>
-      </div>
-    );
-  }
+  const actionClass = 'h-9 px-3 rounded-lg border border-panel-border bg-panel text-ink hover:border-ink-muted text-sm inline-flex items-center gap-1.5';
 
   return (
-    <div className="min-h-screen bg-asphalt p-6 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <Link to="/dashboard" className="text-ink-muted hover:text-gauge-yellow text-sm font-mono-gauge">
-            ← Zpět do garáže
+    <AppShell onFuel={() => setShowFuelModal(true)}>
+    <div className="px-4 md:px-7 py-5 md:py-7">
+      <div className="max-w-5xl">
+        <div className="flex justify-between items-center gap-3 flex-wrap mb-4">
+          <Link to="/cars" className="text-ink-muted hover:text-ink text-sm inline-flex items-center gap-1.5">
+            <Icon name="arrowLeft" size={16} /> Moje auta
           </Link>
           <div className="flex gap-3 items-center flex-wrap justify-end">
             {car.isOwner === false && car.myRole && (
@@ -171,29 +166,29 @@ function CarDetailPage() {
             )}
             <button
               onClick={() => handleExport('pdf')}
-              className="text-ink-muted hover:text-gauge-yellow text-sm font-mono-gauge"
+              className={actionClass}
             >
-              📄 PDF
+              <Icon name="file" size={16} /> Servisní knížka PDF
             </button>
             <button
               onClick={() => handleExport('excel')}
-              className="text-ink-muted hover:text-gauge-yellow text-sm font-mono-gauge"
+              className={actionClass}
             >
-              📊 Excel
+              <Icon name="table" size={16} /> Náklady Excel
             </button>
             {car.isOwner !== false && (
               <>
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="text-ink-muted hover:text-gauge-yellow text-sm font-mono-gauge"
+                  className={actionClass}
                 >
-                  👥 Sdílet
+                  <Icon name="share" size={16} /> Sdílet
                 </button>
                 <button
                   onClick={() => setShowEditModal(true)}
-                  className="text-ink-muted hover:text-ink text-sm font-mono-gauge"
+                  className={actionClass}
                 >
-                  ✏️ Upravit
+                  <Icon name="edit" size={16} /> Upravit
                 </button>
               </>
             )}
@@ -209,18 +204,12 @@ function CarDetailPage() {
             />
           )}
           <div className="p-6">
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start gap-4 flex-wrap">
               <div>
-                <p className="text-gauge-yellow text-xs uppercase tracking-widest font-mono-gauge mb-1">
-                  Technický průkaz
-                </p>
-                <h1 className="text-2xl font-display font-bold text-ink">{car.make} {car.model}</h1>
+                <p className="label-caps text-xs text-ink-muted mb-1">Kniha údržby</p>
+                <h1 className="font-display font-bold text-2xl md:text-[32px] leading-none tracking-wide">{car.make} {car.model}</h1>
               </div>
-              {car.licensePlate && (
-                <div className="border-2 border-panel-border rounded px-3 py-1.5 font-mono-gauge text-ink font-bold tracking-wider">
-                  {car.licensePlate}
-                </div>
-              )}
+              {car.licensePlate && <LicensePlate plate={car.licensePlate} />}
             </div>
 
             <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-panel-border">
@@ -243,28 +232,28 @@ function CarDetailPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <div className="bg-panel border border-panel-border rounded-lg p-3 text-center">
             <p className="text-ink-muted text-xs uppercase tracking-wider">Spotřeba</p>
-            <p className="font-mono-gauge text-gauge-yellow font-bold text-lg">
+            <p className="font-mono-gauge text-accent font-bold text-lg">
               {fuelStats?.averageConsumption !== null && fuelStats?.averageConsumption !== undefined
-                ? `${fuelStats.averageConsumption}` : '—'}
+                ? fuelStats.averageConsumption.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—'}
               <span className="text-xs text-ink-muted ml-1">l/100</span>
             </p>
           </div>
           <div className="bg-panel border border-panel-border rounded-lg p-3 text-center">
             <p className="text-ink-muted text-xs uppercase tracking-wider">Palivo</p>
             <p className="font-mono-gauge text-ink font-bold text-lg">
-              {(fuelStats?.totalSpent || 0).toLocaleString('cs-CZ')}
+              {Math.round(fuelStats?.totalSpent || 0).toLocaleString('cs-CZ')} Kč
             </p>
           </div>
           <div className="bg-panel border border-panel-border rounded-lg p-3 text-center">
             <p className="text-ink-muted text-xs uppercase tracking-wider">Servis+Výd.</p>
             <p className="font-mono-gauge text-ink font-bold text-lg">
-              {(totalServiceCost + totalExpensesCost).toLocaleString('cs-CZ')}
+              {Math.round(totalServiceCost + totalExpensesCost).toLocaleString('cs-CZ')} Kč
             </p>
           </div>
-          <div className="bg-panel border border-gauge-yellow/40 rounded-lg p-3 text-center">
+          <div className="bg-panel border border-accent/40 rounded-lg p-3 text-center">
             <p className="text-ink-muted text-xs uppercase tracking-wider">Celkem</p>
-            <p className="font-mono-gauge text-gauge-orange font-bold text-lg">
-              {totalOverallCost.toLocaleString('cs-CZ')}
+            <p className="font-mono-gauge text-accent font-bold text-lg">
+              {Math.round(totalOverallCost).toLocaleString('cs-CZ')} Kč
             </p>
           </div>
         </div>
@@ -274,13 +263,13 @@ function CarDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded font-mono-gauge text-sm font-semibold uppercase tracking-wide whitespace-nowrap border transition ${
+              className={`px-3.5 h-10 rounded-lg label-caps text-sm whitespace-nowrap border transition inline-flex items-center gap-1.5 ${
                 activeTab === tab.id
-                  ? 'bg-gauge-yellow text-black border-gauge-yellow'
-                  : 'bg-panel text-ink-muted border-panel-border hover:border-gauge-yellow/50'
+                  ? 'bg-accent text-on-accent border-accent'
+                  : 'bg-panel text-ink-muted border-panel-border hover:border-accent/50'
               }`}
             >
-              {tab.icon} {tab.label}
+              <Icon name={tab.icon} size={16} /> {tab.label}
             </button>
           ))}
         </div>
@@ -291,7 +280,7 @@ function CarDetailPage() {
               <h2 className="text-ink font-display font-semibold uppercase tracking-wider text-sm">Servisní knížka</h2>
               <button
                 onClick={() => setShowServiceModal(true)}
-                className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
+                className="bg-accent hover:brightness-110 text-on-accent px-4 py-2 rounded font-mono-gauge text-sm font-bold"
               >
                 + Přidat
               </button>
@@ -314,13 +303,13 @@ function CarDetailPage() {
                       )}
                       <div className="flex gap-3 mt-2">
                         {record.invoiceUrl && (
-                          <a href={record.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-gauge-yellow hover:underline text-xs font-mono-gauge">
-                            📎 Faktura
+                          <a href={record.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-xs font-mono-gauge">
+                            <Icon name="file" size={14} className="inline -mt-0.5 mr-1" />Faktura
                           </a>
                         )}
                         {record.photoUrl && (
-                          <a href={record.photoUrl} target="_blank" rel="noopener noreferrer" className="text-gauge-yellow hover:underline text-xs font-mono-gauge">
-                            📷 Foto
+                          <a href={record.photoUrl} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-xs font-mono-gauge">
+                            <Icon name="camera" size={14} className="inline -mt-0.5 mr-1" />Foto
                           </a>
                         )}
                       </div>
@@ -349,7 +338,7 @@ function CarDetailPage() {
               <h2 className="text-ink font-display font-semibold uppercase tracking-wider text-sm">Tankování</h2>
               <button
                 onClick={() => setShowFuelModal(true)}
-                className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
+                className="bg-accent hover:brightness-110 text-on-accent px-4 py-2 rounded font-mono-gauge text-sm font-bold"
               >
                 + Přidat
               </button>
@@ -394,7 +383,7 @@ function CarDetailPage() {
               <h2 className="text-ink font-display font-semibold uppercase tracking-wider text-sm">Výdaje</h2>
               <button
                 onClick={() => setShowExpenseModal(true)}
-                className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
+                className="bg-accent hover:brightness-110 text-on-accent px-4 py-2 rounded font-mono-gauge text-sm font-bold"
               >
                 + Přidat
               </button>
@@ -441,7 +430,7 @@ function CarDetailPage() {
               <h2 className="text-ink font-display font-semibold uppercase tracking-wider text-sm">Kontrolky</h2>
               <button
                 onClick={() => setShowReminderModal(true)}
-                className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
+                className="bg-accent hover:brightness-110 text-on-accent px-4 py-2 rounded font-mono-gauge text-sm font-bold"
               >
                 + Přidat
               </button>
@@ -465,7 +454,7 @@ function CarDetailPage() {
                           type="checkbox"
                           checked={reminder.completed}
                           onChange={() => handleToggleReminder(reminder.id)}
-                          className="w-5 h-5 mt-1 accent-gauge-yellow"
+                          className="w-5 h-5 mt-1 accent-accent"
                         />
                         <div>
                           <h3 className="text-ink font-display font-semibold">
@@ -475,11 +464,11 @@ function CarDetailPage() {
                           <div className="flex gap-3 text-xs font-mono-gauge mt-1">
                             {reminder.dueDate && (
                               <span className={dateInfo.urgent && !reminder.completed ? 'text-warning-red font-semibold' : 'text-ink-muted'}>
-                                📅 {new Date(reminder.dueDate).toLocaleDateString('cs-CZ')} {!reminder.completed && `(${dateInfo.text})`}
+                                {new Date(reminder.dueDate).toLocaleDateString('cs-CZ')} {!reminder.completed && `(${dateInfo.text})`}
                               </span>
                             )}
                             {reminder.dueMileage && (
-                              <span className="text-ink-muted">🔧 {reminder.dueMileage.toLocaleString('cs-CZ')} km</span>
+                              <span className="text-ink-muted">při {reminder.dueMileage.toLocaleString('cs-CZ')} km</span>
                             )}
                           </div>
                           {reminder.notes && <p className="text-ink-muted text-sm mt-1">{reminder.notes}</p>}
@@ -505,7 +494,7 @@ function CarDetailPage() {
               <h2 className="text-ink font-display font-semibold uppercase tracking-wider text-sm">Galerie</h2>
               <button
                 onClick={() => setShowPhotoModal(true)}
-                className="bg-gauge-yellow hover:brightness-110 text-black px-4 py-2 rounded font-mono-gauge text-sm font-bold"
+                className="bg-accent hover:brightness-110 text-on-accent px-4 py-2 rounded font-mono-gauge text-sm font-bold"
               >
                 + Přidat fotku
               </button>
@@ -537,6 +526,7 @@ function CarDetailPage() {
         <ShareCarModal carId={id} onClose={() => setShowShareModal(false)} />
       )}
     </div>
+    </AppShell>
   );
 }
 

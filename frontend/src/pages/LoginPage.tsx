@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../api/axios';
+import api, { getErrorMessage } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import Icon from '../components/Icon';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,8 +22,8 @@ function LoginPage() {
       const res = await api.post('/auth/login', { email, password });
       login(res.data.token, res.data.user);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Něco se pokazilo.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Něco se pokazilo.'));
     } finally {
       setLoading(false);
     }
@@ -32,8 +33,9 @@ function LoginPage() {
     <div className="min-h-screen bg-asphalt flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <p className="text-gauge-yellow font-mono-gauge text-xs uppercase tracking-[0.3em] mb-1">Nastartuj</p>
-          <h1 className="text-3xl font-display font-bold text-ink">AutoApp</h1>
+          <Icon name="logo" size={40} className="text-accent mx-auto mb-2" />
+          <h1 className="text-3xl font-display font-bold text-ink tracking-[0.08em]">AUTOAPP</h1>
+          <p className="text-ink-muted text-sm mt-1">Kniha jízd a servisní knížka tvého auta</p>
         </div>
 
         <div className="bg-panel border border-panel-border rounded-xl p-8">
@@ -41,24 +43,24 @@ function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">E-mail</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">E-mail</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
               />
             </div>
 
             <div>
-              <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Heslo</label>
+              <label className="block label-caps text-xs text-ink-muted mb-1">Heslo</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
               />
             </div>
 
@@ -71,15 +73,15 @@ function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gauge-yellow hover:brightness-110 text-black py-3 rounded font-mono-gauge font-bold uppercase tracking-wider disabled:opacity-50 transition"
+              className="w-full bg-accent hover:brightness-110 text-on-accent py-3 rounded font-mono-gauge font-bold uppercase tracking-wider disabled:opacity-50 transition"
             >
-              {loading ? 'Startuji...' : '▶ Nastartovat'}
+              {loading ? 'Přihlašuji…' : 'Přihlásit se'}
             </button>
           </form>
 
           <p className="text-ink-muted text-sm mt-6 text-center font-mono-gauge">
             Nemáš účet?{' '}
-            <Link to="/register" className="text-gauge-yellow hover:underline">
+            <Link to="/register" className="text-accent hover:underline">
               Zaregistruj se
             </Link>
           </p>

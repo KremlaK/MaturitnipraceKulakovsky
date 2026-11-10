@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { getMapLocations, type MapPoint } from '../api/map';
+import AppShell from '../components/AppShell';
+import Icon from '../components/Icon';
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -32,52 +33,50 @@ function MapPage() {
     : DEFAULT_CENTER;
 
   return (
-    <div className="min-h-screen bg-asphalt p-6 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        <Link to="/dashboard" className="text-ink-muted hover:text-gauge-yellow text-sm font-mono-gauge">
-          ← Zpět do garáže
-        </Link>
-
-        <div className="flex justify-between items-center mt-4 mb-4">
-          <h1 className="text-2xl font-display font-bold text-ink">🗺️ Mapa</h1>
-          <div className="flex gap-2">
+    <AppShell>
+      <div className="px-4 md:px-7 py-5 md:py-7">
+        <div className="flex justify-between items-center gap-3 flex-wrap mb-4">
+          <h1 className="font-display font-bold text-2xl md:text-[30px] uppercase tracking-wide">Mapa míst</h1>
+          <div className="flex gap-2" role="group" aria-label="Filtr">
             <button
               onClick={() => setFilter('all')}
-              className={`px-3 py-1.5 rounded font-mono-gauge text-xs font-semibold uppercase border ${
-                filter === 'all' ? 'bg-gauge-yellow text-black border-gauge-yellow' : 'bg-panel text-ink-muted border-panel-border'
+className={`px-3 h-9 rounded-lg label-caps text-sm border inline-flex items-center gap-1.5 ${
+                filter === 'all' ? 'bg-accent text-on-accent border-accent' : 'bg-panel text-ink border-panel-border hover:border-ink-muted'
               }`}
             >
               Vše
             </button>
             <button
               onClick={() => setFilter('fuel')}
-              className={`px-3 py-1.5 rounded font-mono-gauge text-xs font-semibold uppercase border ${
-                filter === 'fuel' ? 'bg-gauge-yellow text-black border-gauge-yellow' : 'bg-panel text-ink-muted border-panel-border'
+className={`px-3 h-9 rounded-lg label-caps text-sm border inline-flex items-center gap-1.5 ${
+                filter === 'fuel' ? 'bg-accent text-on-accent border-accent' : 'bg-panel text-ink border-panel-border hover:border-ink-muted'
               }`}
+              aria-pressed={filter === 'fuel'}
             >
-              ⛽ Tankování
+              <Icon name="fuel" size={16} /> Tankování
             </button>
             <button
               onClick={() => setFilter('service')}
-              className={`px-3 py-1.5 rounded font-mono-gauge text-xs font-semibold uppercase border ${
-                filter === 'service' ? 'bg-gauge-yellow text-black border-gauge-yellow' : 'bg-panel text-ink-muted border-panel-border'
+className={`px-3 h-9 rounded-lg label-caps text-sm border inline-flex items-center gap-1.5 ${
+                filter === 'service' ? 'bg-accent text-on-accent border-accent' : 'bg-panel text-ink border-panel-border hover:border-ink-muted'
               }`}
+              aria-pressed={filter === 'service'}
             >
-              🔧 Servis
+              <Icon name="wrench" size={16} /> Servis
             </button>
           </div>
         </div>
 
         {loading ? (
-          <p className="text-ink-muted font-mono-gauge">Načítám...</p>
+          <p className="text-ink-muted">Načítám…</p>
         ) : filteredPoints.length === 0 ? (
-          <div className="bg-panel border border-panel-border rounded-xl p-8 text-center">
-            <p className="text-ink-muted font-mono-gauge">
+          <div className="bg-panel border border-panel-border rounded-lg p-8 text-center">
+            <p className="text-ink-muted">
               Zatím žádná místa s polohou. Přidej tankování nebo servis s povolenou GPS polohou.
             </p>
           </div>
         ) : (
-          <div className="rounded-xl overflow-hidden border border-panel-border" style={{ height: '70vh' }}>
+          <div className="rounded-lg overflow-hidden border border-panel-border h-[calc(100dvh-230px)] md:h-[70vh] min-h-[320px]">
             <MapContainer center={center} zoom={filteredPoints.length > 0 ? 11 : 7} style={{ height: '100%', width: '100%' }}>
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -87,7 +86,7 @@ function MapPage() {
                 <Marker key={`${point.type}-${point.id}`} position={[point.latitude, point.longitude]}>
                   <Popup>
                     <div className="font-sans">
-                      <strong>{point.type === 'fuel' ? '⛽' : '🔧'} {point.label}</strong>
+                      <strong>{point.type === 'fuel' ? 'Tankování' : 'Servis'}: {point.label}</strong>
                       <br />
                       {point.car.make} {point.car.model}
                       <br />
@@ -101,7 +100,7 @@ function MapPage() {
           </div>
         )}
       </div>
-    </div>
+    </AppShell>
   );
 }
 

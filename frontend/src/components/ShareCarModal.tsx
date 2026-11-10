@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { getShares, createShare, deleteShare, SHARE_ROLE_LABELS, type CarShare, type ShareRole } from '../api/shares';
+import { getErrorMessage } from '../api/axios';
 
 interface Props {
   carId: string;
@@ -14,21 +15,17 @@ function ShareCarModal({ carId, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
 
-  async function loadShares() {
-    setLoadingList(true);
-    try {
-      const data = await getShares(carId);
-      setShares(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingList(false);
-    }
-  }
+  // Stav se nastavuje až v callbacku po načtení, ne synchronně v efektu
+  const loadShares = useCallback(() =>
+    getShares(carId)
+      .then(setShares)
+      .catch(console.error)
+      .finally(() => setLoadingList(false)),
+  [carId]);
 
   useEffect(() => {
     loadShares();
-  }, [carId]);
+  }, [loadShares]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -39,8 +36,8 @@ function ShareCarModal({ carId, onClose }: Props) {
       await createShare(carId, email, role);
       setEmail('');
       loadShares();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Něco se pokazilo.');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Něco se pokazilo.'));
     } finally {
       setLoading(false);
     }
@@ -53,29 +50,29 @@ function ShareCarModal({ carId, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
-      <div className="bg-panel border border-panel-border rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center sm:px-4 z-50">
+      <div className="bg-panel border border-panel-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 w-full sm:max-w-md max-h-[92vh] overflow-y-auto pb-[max(20px,env(safe-area-inset-bottom))]">
         <h2 className="text-ink font-display font-semibold text-lg mb-4 uppercase tracking-wider">Sdílet auto</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3 mb-6">
           <div>
-            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">E-mail uživatele</label>
+            <label className="block label-caps text-xs text-ink-muted mb-1">E-mail uživatele</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="kolega@email.cz"
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
             />
           </div>
 
           <div>
-            <label className="block text-ink-muted text-xs uppercase tracking-wider mb-1 font-mono-gauge">Role</label>
+            <label className="block label-caps text-xs text-ink-muted mb-1">Role</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as ShareRole)}
-              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge"
+              className="w-full px-3 py-2 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
             >
               {Object.entries(SHARE_ROLE_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -95,7 +92,7 @@ function ShareCarModal({ carId, onClose }: Props) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gauge-yellow hover:brightness-110 text-black py-2 rounded font-mono-gauge font-bold text-sm uppercase tracking-wider disabled:opacity-50"
+            className="w-full bg-accent hover:brightness-110 text-on-accent py-2 rounded font-mono-gauge font-bold text-sm uppercase tracking-wider disabled:opacity-50"
           >
             {loading ? 'Sdílím...' : '+ Sdílet'}
           </button>
@@ -132,7 +129,7 @@ function ShareCarModal({ carId, onClose }: Props) {
 
         <button
           onClick={onClose}
-          className="w-full mt-4 border border-panel-border text-ink-muted hover:text-ink hover:border-gauge-yellow py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
+          className="w-full mt-4 border border-panel-border text-ink-muted hover:text-ink hover:border-accent py-2 rounded font-mono-gauge text-sm uppercase tracking-wider"
         >
           Zavřít
         </button>

@@ -10,7 +10,14 @@ router.use(authMiddleware);
 router.get('/', async (req, res) => {
   try {
     const cars = await prisma.car.findMany({
-      where: { OR: [{ ownerId: req.userId }, { shares: { some: { userId: req.userId } } }] },
+      // Do souhrnu patří vlastní auta a auta, kde je uživatel spolumajitel.
+      // Auta sdílená s rolí SERVIS (zákaznická auta) se do nákladů nepočítají.
+      where: {
+        OR: [
+          { ownerId: req.userId },
+          { shares: { some: { userId: req.userId, role: 'SPOLUMAJITEL' } } },
+        ],
+      },
       include: {
         serviceRecords: true,
         fuelRecords: true,

@@ -43,7 +43,7 @@ export default function AccountActionPage({ action }: { action: Action }) {
     }
   }
 
-  const inputClass = 'w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-gauge-yellow font-mono-gauge';
+  const inputClass = 'w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge';
   return (
     <div className="min-h-screen bg-asphalt flex items-center justify-center px-4">
       <div className="bg-panel border border-panel-border rounded-xl p-8 w-full max-w-md">
@@ -71,12 +71,12 @@ export default function AccountActionPage({ action }: { action: Action }) {
             )}
             {action === 'verify-email' && <p className="text-ink-muted">Kliknutím potvrď svou e-mailovou adresu.</p>}
             {error && <p role="alert" className="text-warning-red text-sm">{error}</p>}
-            <button disabled={loading} className="w-full bg-gauge-yellow text-black py-3 rounded font-mono-gauge font-bold disabled:opacity-50">
+            <button disabled={loading} className="w-full bg-accent text-on-accent py-3 rounded font-mono-gauge font-bold disabled:opacity-50">
               {loading ? 'Odesílám...' : action === 'verify-email' ? 'Ověřit e-mail' : action === 'forgot-password' ? 'Poslat odkaz' : 'Uložit heslo'}
             </button>
           </form>
         )}
-        {action === 'reset-password' && <Link to="/forgot-password" className="block mt-4 text-gauge-yellow text-sm">Vyžádat nový odkaz</Link>}
+        {action === 'reset-password' && <Link to="/forgot-password" className="block mt-4 text-accent text-sm">Vyžádat nový odkaz</Link>}
         <Link to="/login" className="block mt-6 text-ink-muted hover:text-ink text-sm">Zpět na přihlášení</Link>
       </div>
     </div>
