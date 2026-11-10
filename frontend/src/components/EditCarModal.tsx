@@ -3,6 +3,7 @@ import { updateCar, type Car, type CarInput } from '../api/cars';
 import { CAR_MAKES, CAR_MAKE_NAMES } from '../data/carMakes';
 import FileUpload from './FileUpload';
 import { getErrorMessage } from '../api/axios';
+import BodyTypePicker from './BodyTypePicker';
 
 interface Props {
   car: Car;
@@ -18,6 +19,7 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
     licensePlate: car.licensePlate || undefined,
     year: car.year || undefined,
     mileage: car.mileage || undefined,
+    bodyType: car.bodyType ?? null,
     notes: car.notes || undefined,
     photoUrl: car.photoUrl || undefined,
   });
@@ -79,7 +81,8 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
             </div>
             <div>
               <label className="block label-caps text-xs text-ink-muted mb-1">Model *</label>
-              {isKnownMake && availableModels.length > 0 ? (
+              {/* Výběr jen u modelu ze seznamu; vlastní název (např. „Octavia Combi 2.0 TDI“) zůstane v textovém poli */}
+              {isKnownMake && availableModels.length > 0 && (availableModels.includes(form.model) || form.model === '') ? (
                 <select
                   required
                   value={form.model}
@@ -128,6 +131,12 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
               />
             </div>
           </div>
+
+          <BodyTypePicker
+            value={form.bodyType ?? null}
+            onChange={(bodyType) => setForm({ ...form, bodyType })}
+            makeModel={`${form.make} ${form.model}`}
+          />
 
           <div>
             <label className="block label-caps text-xs text-ink-muted mb-1">SPZ</label>

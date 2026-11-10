@@ -288,13 +288,23 @@ export function sumLastDays(records: RecentRecord[], days: number, now: Date) {
 
 // ---------- typ karoserie pro výkres ----------
 
-export type BodyType = 'hatch' | 'combi' | 'suv';
+export type BodyType = 'hatch' | 'sedan' | 'combi' | 'suv';
 
 const SUV = /kodiaq|karoq|kamiq|enyaq|elroq|yeti|tucson|kona|santa|bayon|duster|bigster|qashqai|juke|x-trail|tiguan|t-roc|t-cross|taigo|touareg|id\.?4|sportage|sorento|niro|stonic|ev6|rav4|c-hr|yaris cross|corolla cross|captur|kadjar|austral|arkana|2008|3008|5008|mokka|grandland|crossland|frontera|kuga|puma|ecosport|x[1-7]\b|q[2-8]\b|gla|glb|glc|gle|xc40|xc60|xc90|cx-[3-9]|vitara|s-cross|jimny|ateca|arona|tarraco|formentor|outlander|asx|forester|outback|tivoli|korando|suv|4x4/i;
 const COMBI = /combi|kombi|estate|variant|touring|avant|break|\bsw\b|sports? ?tourer|sportswagon|wagon|caravan|scout|alltrack/i;
+const SEDAN = /sedan|limuz|liftback|superb|octavia|rapid|passat|arteon|jetta|mondeo|insignia|\ba[4-8]\b|řada [3-7]|[3-7]er|c-klasse|e-klasse|třída [ce]|camry|accord|s60|s90|model 3|laguna|talisman|508|407|elantra|i40/i;
 
+/** Odhad typu karoserie z názvu – jen když ho uživatel nevybral. */
 export function guessBodyType(model: string): BodyType {
   if (SUV.test(model)) return 'suv';
   if (COMBI.test(model)) return 'combi';
+  if (SEDAN.test(model)) return 'sedan';
   return 'hatch';
+}
+
+const FROM_API: Record<string, BodyType> = { HATCHBACK: 'hatch', SEDAN: 'sedan', KOMBI: 'combi', SUV: 'suv' };
+
+/** Typ pro výkres: zvolený uživatelem, jinak odhad z názvu. */
+export function drawingBodyType(car: { make: string; model: string; bodyType?: string | null }): BodyType {
+  return (car.bodyType && FROM_API[car.bodyType]) || guessBodyType(`${car.make} ${car.model}`);
 }

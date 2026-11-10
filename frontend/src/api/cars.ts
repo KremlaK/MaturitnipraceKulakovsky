@@ -2,6 +2,8 @@ import api from './axios';
 
 export type MyRole = 'MAJITEL' | 'SPOLUMAJITEL' | 'SERVIS';
 
+export type CarBodyType = 'HATCHBACK' | 'SEDAN' | 'KOMBI' | 'SUV';
+
 export interface Car {
   id: string;
   vin: string | null;
@@ -10,6 +12,7 @@ export interface Car {
   model: string;
   year: number | null;
   mileage: number | null;
+  bodyType?: CarBodyType | null;
   notes: string | null;
   photoUrl: string | null;
   createdAt: string;
@@ -29,6 +32,7 @@ export interface CarInput {
   licensePlate?: string;
   year?: number;
   mileage?: number;
+  bodyType?: CarBodyType | null;
   notes?: string;
   photoUrl?: string;
 }

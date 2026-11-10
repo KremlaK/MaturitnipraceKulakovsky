@@ -19,7 +19,7 @@ import AddExpenseModal from '../components/AddExpenseModal';
 import AddReminderModal from '../components/AddReminderModal';
 import {
   buildCosts, buildRecent, buildRuler, buildStatus, fmtDate, fmtDayMonth, fmtInt, fmtKc,
-  guessBodyType, kmPerDay, paceLabel, stkStickerYear, sumLastDays,
+  drawingBodyType, kmPerDay, paceLabel, stkStickerYear, sumLastDays,
 } from '../lib/carStatus';
 
 const ROLE_LABELS: Record<string, string> = { MAJITEL: 'Majitel', SPOLUMAJITEL: 'Spolumajitel', SERVIS: 'Servis' };
@@ -124,7 +124,7 @@ function DashboardPage() {
       nextKm,
       last30: sumLastDays(recent, 30, now),
       stkYear: stkStickerYear(data.reminders),
-      bodyType: guessBodyType(`${data.car.make} ${data.car.model}`),
+      bodyType: drawingBodyType(data.car),
     };
   }, [data, now]);
 

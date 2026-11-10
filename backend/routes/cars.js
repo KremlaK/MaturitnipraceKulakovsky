@@ -59,6 +59,16 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+const BODY_TYPES = ['HATCHBACK', 'SEDAN', 'KOMBI', 'SUV'];
+
+// undefined = beze změny, '' / null = smazat, jinak musí jít o známý typ karoserie
+function parseBodyType(value) {
+  if (value === undefined) return { value: undefined };
+  if (value === null || value === '') return { value: null };
+  if (BODY_TYPES.includes(value)) return { value };
+  return { error: `Neznámý typ karoserie. Povolené: ${BODY_TYPES.join(', ')}.` };
+}
+
 // POST /api/cars - přidání nového auta
 router.post('/', async (req, res) => {
   try {
@@ -66,6 +76,11 @@ router.post('/', async (req, res) => {
 
     if (!make || !model) {
       return res.status(400).json({ error: 'Značka a model jsou povinné.' });
+    }
+
+    const bodyType = parseBodyType(req.body.bodyType);
+    if (bodyType.error) {
+      return res.status(400).json({ error: bodyType.error });
     }
 
     const car = await prisma.car.create({
@@ -76,6 +91,7 @@ router.post('/', async (req, res) => {
         model,
         year: year || null,
         mileage: mileage || 0,
+        bodyType: bodyType.value ?? null,
         notes: notes || null,
         photoUrl: photoUrl || null,
         ownerId: req.userId,
@@ -103,9 +119,14 @@ router.put('/:id', async (req, res) => {
 
     const { vin, licensePlate, make, model, year, mileage, notes, photoUrl } = req.body;
 
+    const bodyType = parseBodyType(req.body.bodyType);
+    if (bodyType.error) {
+      return res.status(400).json({ error: bodyType.error });
+    }
+
     const car = await prisma.car.update({
       where: { id: req.params.id },
-      data: { vin, licensePlate, make, model, year, mileage, notes, photoUrl },
+      data: { vin, licensePlate, make, model, year, mileage, notes, photoUrl, bodyType: bodyType.value },
     });
 
     res.json(car);

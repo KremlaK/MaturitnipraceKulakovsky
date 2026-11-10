@@ -44,6 +44,19 @@ const SHAPES: Record<BodyType, Shape> = {
     wheels: [240, 830], cy: 299, r: 76,
     anchors: { oil: [870, 206], fuel: [181, 197], tires: [182, 349], brakes: [830, 299], stk: [58, 243] },
   },
+  sedan: {
+    body: 'M58 302 L44 262 L44 214 Q46 196 70 190 L200 180 Q240 132 300 100 L330 92 L560 86 Q615 88 650 104 Q706 132 760 168 L930 192 Q982 204 998 230 L1004 270 L996 298 Q988 306 972 306 L939.6 305 A90 90 0 0 0 760.4 305 L304.6 305 A90 90 0 0 0 125.4 305 Z',
+    windows: [
+      'M264 172 Q280 136 312 110 L330 104 L452 100 L452 172 Z',
+      'M474 173 L474 99 L566 96 Q614 98 642 114 L712 166 L704 172 Z',
+    ],
+    details: ['M256 176 L262 236 Q268 268 302 292', 'M463 176 L466 302', 'M716 176 L722 232 Q730 266 760 288', 'M60 212 L900 222', 'M300 296 L762 298', 'M72 192 L196 184'],
+    parts: ['M700 156 L726 150 L732 168 L705 172 Z', 'M300 198 L332 198 M512 200 L544 200', 'M956 202 L996 220 L991 234 L953 220 Z', 'M45 216 L68 214 L68 240 L45 242'],
+    flap: { x: 82, y: 222 },
+    plate: { x: 42, y: 246 },
+    wheels: [215, 850], cy: 297, r: 78,
+    anchors: { oil: [880, 206], fuel: [96, 234], tires: [155, 345], brakes: [850, 297], stk: [46, 257] },
+  },
   suv: {
     body: 'M40 300 L30 250 L32 170 Q38 112 70 92 L150 74 L540 66 Q600 66 640 78 Q705 108 765 150 L940 172 Q996 184 1010 214 L1014 262 L1006 292 Q998 301 982 301 L944.6 300 A95 95 0 0 0 755.4 300 L319.6 300 A95 95 0 0 0 130.4 300 Z',
     windows: [
@@ -92,6 +105,24 @@ interface Props {
   label: string;
 }
 
+const MIN_GAP = 38; // kroužky na stejné řadě se nesmí překrývat (průměr 30)
+
+/** Rozmístí kroužky: výchozí pozice podle kotvy, pak odsune sousedy na stejné řadě. */
+function placeMarkers(items: StatusItem[], shape: Shape) {
+  const placed = items.map((item) => {
+    const [ax, ay] = shape.anchors[item.key];
+    const [dx, pos] = MARKER_OFFSET[item.key];
+    return { item, ax, ay, pos, mx: Math.min(1025, Math.max(15, ax + dx)) };
+  });
+  for (const row of ['top', 'bottom'] as const) {
+    const inRow = placed.filter((p) => p.pos === row).sort((a, b) => a.mx - b.mx);
+    for (let i = 1; i < inRow.length; i++) {
+      if (inRow[i].mx - inRow[i - 1].mx < MIN_GAP) inRow[i].mx = inRow[i - 1].mx + MIN_GAP;
+    }
+  }
+  return placed;
+}
+
 export default function CarDrawing({ bodyType, items, label }: Props) {
   const s = SHAPES[bodyType];
   const [rx, fx] = s.wheels;
@@ -124,10 +155,7 @@ export default function CarDrawing({ bodyType, items, label }: Props) {
           ROZVOR
         </text>
       </g>
-      {items.map((item) => {
-        const [ax, ay] = s.anchors[item.key];
-        const [dx, pos] = MARKER_OFFSET[item.key];
-        const mx = Math.min(1025, Math.max(15, ax + dx));
+      {placeMarkers(items, s).map(({ item, ax, ay, pos, mx }) => {
         const my = pos === 'top' ? 58 : 446;
         const ly = pos === 'top' ? my + 14 : my - 14;
         return (

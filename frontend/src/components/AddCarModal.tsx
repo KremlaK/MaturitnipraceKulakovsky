@@ -4,6 +4,7 @@ import { CAR_MAKES, CAR_MAKE_NAMES } from '../data/carMakes';
 import { decodeVin } from '../api/vin';
 import FileUpload from './FileUpload';
 import { getErrorMessage } from '../api/axios';
+import BodyTypePicker from './BodyTypePicker';
 
 interface Props {
   onClose: () => void;
@@ -201,6 +202,12 @@ function AddCarModal({ onClose, onCreated }: Props) {
               />
             </div>
           </div>
+
+          <BodyTypePicker
+            value={form.bodyType ?? null}
+            onChange={(bodyType) => setForm({ ...form, bodyType })}
+            makeModel={`${form.make} ${form.model}`}
+          />
 
           <div>
             <label className="block label-caps text-xs text-ink-muted mb-1">SPZ</label>
