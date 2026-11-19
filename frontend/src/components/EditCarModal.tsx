@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { updateCar, type Car, type CarInput } from '../api/cars';
+import { makeCutout, updateCar, type Car, type CarInput } from '../api/cars';
 import { CAR_MAKES, CAR_MAKE_NAMES } from '../data/carMakes';
 import CarPhotoField from './CarPhotoField';
 import { getErrorMessage } from '../api/axios';
@@ -25,6 +25,10 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
     photoView: car.photoView ?? 'FRONT',
   });
   const [error, setError] = useState('');
+  const [stage, setStage] = useState<'saving' | 'cutout' | null>(null);
+  // auto je uložené, jen se nepovedlo vystřihnout z fotky – tlačítko pak jen zavře okno
+  const [savedWithWarning, setSavedWithWarning] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
   const availableModels = form.make ? CAR_MAKES[form.make] || [] : [];
@@ -36,17 +40,32 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (savedWithWarning) return onClose();
     setError('');
     setLoading(true);
+    setStage('saving');
 
     try {
       await updateCar(car.id, form);
+      // nová fotka (nebo starší fotka bez vystřižení) → vystřihnout auto pro garáž
+      if (form.photoUrl && (form.photoUrl !== car.photoUrl || !car.photoCutoutUrl)) {
+        setStage('cutout');
+        try {
+          await makeCutout(car.id);
+        } catch (err) {
+          onUpdated();
+          setSavedWithWarning(true);
+          setError(`Auto je uložené, ale z fotky se ho nepodařilo vystřihnout: ${getErrorMessage(err, 'neznámá chyba')} V garáži se zatím ukáže kresba.`);
+          return;
+        }
+      }
       onUpdated();
       onClose();
     } catch (err) {
       setError(getErrorMessage(err, 'Něco se pokazilo.'));
     } finally {
       setLoading(false);
+      setStage(null);
     }
   }
 
@@ -175,6 +194,11 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
             onChange={({ url, view }) => setForm({ ...form, photoUrl: url, photoView: view })}
           />
 
+          {stage === 'cutout' && (
+            <p role="status" className="text-sm text-ink-muted border border-panel-border rounded px-3 py-2 bg-asphalt-light">
+              Vystřihujeme auto z fotky pro garáž. Trvá to pár sekund…
+            </p>
+          )}
           {error && (
             <p className="text-warning-red text-sm font-mono-gauge border border-warning-red/30 bg-warning-red/10 rounded px-3 py-2">
               {error}
@@ -194,7 +218,7 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
               disabled={loading}
               className="flex-1 bg-accent hover:brightness-110 text-on-accent py-2 rounded font-mono-gauge font-bold text-sm uppercase tracking-wider disabled:opacity-50"
             >
-              {loading ? 'Ukládám...' : 'Uložit'}
+              {stage === 'cutout' ? 'Vystřihuji auto…' : loading ? 'Ukládám…' : savedWithWarning ? 'Zavřít' : 'Uložit'}
             </button>
           </div>
         </form>

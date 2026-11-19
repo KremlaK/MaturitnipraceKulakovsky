@@ -23,3 +23,6 @@ backend/uploads/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Model pro vystřižení auta z fotky (stahuje npm run model:download)
+backend/models/

@@ -110,3 +110,39 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .floor-up, .floor-down { animation: none; }
 }
+
+/* Ilustrovaná garáž – barvy scény pro světlý a tmavý motiv */
+:root {
+  --g-ceiling: #cfcbc3;
+  --g-wall: #e4e0d8;
+  --g-side: #d3cfc6;
+  --g-floor-far: #b3aea5;
+  --g-floor-near: #d6d2c9;
+  --g-edge: #a39e94;
+  --g-column: #d9d5cc;
+  --g-line: #ffffff;
+  --g-paint: #d9b23a;
+  --g-light: #fffaf0;
+  --g-pool: 0.28;
+}
+:root[data-theme="dark"] {
+  --g-ceiling: #17191c;
+  --g-wall: #24272b;
+  --g-side: #1d2024;
+  --g-floor-far: #15171a;
+  --g-floor-near: #2a2e33;
+  --g-edge: #3a3f46;
+  --g-column: #2c3036;
+  --g-line: #d9d9d9;
+  --g-paint: #b8962f;
+  --g-light: #fff4d6;
+  --g-pool: 0.22;
+}
+
+/* auto ve stání lehce „nadjede“ při najetí myší */
+.garage-car { transition: transform 0.18s ease-out; }
+.garage-car:hover, .garage-car:focus-visible { transform: translateY(-3px); }
+@media (prefers-reduced-motion: reduce) {
+  .garage-car { transition: none; }
+  .garage-car:hover, .garage-car:focus-visible { transform: none; }
+}

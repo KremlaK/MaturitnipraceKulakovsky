@@ -61,6 +61,7 @@ export default function CarPhotoField({ url, view, onChange }: Props) {
         ))}
       </div>
       <ul className="text-xs text-ink-muted list-disc pl-4 space-y-0.5">
+        <li><b>Do garáže se hodí fotka zepředu</b> – auto z ní vystřihneme a postavíme do stání.</li>
         <li>Celé auto v záběru, telefon ve výšce světel, ne šikmo.</li>
         <li>Za světla, bez lidí a dalších aut před ním.</li>
         <li>JPEG, PNG nebo WEBP do 10 MB.</li>

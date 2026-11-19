@@ -7,11 +7,11 @@ import { useAuth } from '../context/AuthContext';
 import AppShell from '../components/AppShell';
 import Icon from '../components/Icon';
 import Panel from '../components/Panel';
-import CarFront from '../components/CarFront';
+import GarageScene from '../components/GarageScene';
 import LicensePlate from '../components/LicensePlate';
 import AddCarModal from '../components/AddCarModal';
 import AddFuelModal from '../components/AddFuelModal';
-import { daysLabel, daysUntil, drawingBodyType, fmtInt, fmtKc, OIL_WARN_KM, WARN_DAYS } from '../lib/carStatus';
+import { daysLabel, daysUntil, fmtInt, fmtKc, OIL_WARN_KM, WARN_DAYS } from '../lib/carStatus';
 
 const BAYS_PER_FLOOR = 4;
 
@@ -36,69 +36,43 @@ function alertsFor(car: Car, reminders: UpcomingReminder[], now: Date): Alert[] 
     });
 }
 
-function Bay({ car, index, alerts, onFuel }: { car: Car; index: number; alerts: Alert[]; onFuel: () => void }) {
+/** Karta pod stáním: SPZ, název, nájezd, stav kontrolky a rychlé tankování */
+function BayCard({ car, index, alerts, onFuel }: { car: Car | null; index: number; alerts: Alert[]; onFuel: () => void }) {
   const warn = alerts.filter((a) => a.warn);
-  const hasPhoto = !!car.photoUrl;
+  if (!car) {
+    return (
+      <li className="px-3 py-3 flex flex-col gap-1 text-ink-muted">
+        <span className="font-mono-gauge text-xs tracking-[0.15em]">P{index}</span>
+        <span className="text-sm">Volné stání</span>
+      </li>
+    );
+  }
   return (
-    <li className="relative flex flex-col border-panel-border">
-      {/* označení stání a kontrolka */}
-      <div className="flex items-center justify-between px-3 pt-2.5">
+    <li className="px-3 py-3 flex flex-col gap-1.5 min-w-0">
+      <div className="flex items-center justify-between gap-2">
         <span className="font-mono-gauge text-xs text-ink-muted tracking-[0.15em]">P{index}</span>
         <span
           className={`inline-flex items-center gap-1.5 label-caps text-[11px] ${warn.length ? 'text-accent' : 'text-ok'}`}
           title={warn.length ? warn.map((a) => `${a.title}: ${a.when}`).join('\n') : 'Nic nehoří'}
         >
-          <span className={`w-2.5 h-2.5 rounded-full ${warn.length ? 'bg-accent shadow-[0_0_0_3px_var(--c-accent-soft)]' : 'bg-ok'}`} aria-hidden="true" />
+          <span className={`w-2 h-2 rounded-full ${warn.length ? 'bg-accent' : 'bg-ok'}`} aria-hidden="true" />
           {warn.length ? `${warn.length} ${warn.length === 1 ? 'termín' : 'termíny'}` : 'v pořádku'}
         </span>
       </div>
-
-      <Link to={`/cars/${car.id}`} className="group flex-1 flex flex-col items-center px-3 pt-2 pb-3 text-center rounded focus-visible:outline-offset-[-4px]">
-        <div className="w-full aspect-[4/3] flex items-end justify-center">
-          {hasPhoto ? (
-            <img
-              src={car.photoUrl!}
-              alt=""
-              className={`w-full h-full rounded border border-panel-border bg-asphalt-light ${car.photoView === 'SIDE' ? 'object-contain' : 'object-cover'} group-hover:border-ink-muted transition-colors`}
-            />
-          ) : (
-            <CarFront bodyType={drawingBodyType(car)} className="w-[88%] text-ink group-hover:text-accent transition-colors" />
-          )}
-        </div>
-        {/* podlaha stání: stop čára */}
-        <span className="block w-full h-[3px] bg-ink mt-1" aria-hidden="true" />
-        <span className="mt-2.5">{car.licensePlate ? <LicensePlate plate={car.licensePlate} size="sm" /> : <span className="text-xs text-ink-muted">bez SPZ</span>}</span>
-        <span className="mt-1.5 font-display font-semibold text-lg leading-tight group-hover:underline underline-offset-2">{car.make} {car.model}</span>
-        <span className="font-mono-gauge text-xs text-ink-muted">{fmtInt(car.mileage ?? 0)} km</span>
+      <Link to={`/cars/${car.id}`} className="min-w-0 hover:underline underline-offset-2">
+        <span className="block font-display font-semibold text-lg leading-tight truncate">{car.make} {car.model}</span>
       </Link>
-
+      <div className="flex items-center gap-2 flex-wrap">
+        {car.licensePlate && <LicensePlate plate={car.licensePlate} size="sm" />}
+        <span className="font-mono-gauge text-xs text-ink-muted">{fmtInt(car.mileage ?? 0)} km</span>
+      </div>
       <button
         onClick={onFuel}
-        className="mx-3 mb-3 h-10 rounded border border-panel-border bg-asphalt-light hover:border-accent hover:text-accent inline-flex items-center justify-center gap-2 label-caps text-sm"
+        className="mt-1 h-10 rounded border border-panel-border bg-asphalt-light hover:border-accent hover:text-accent inline-flex items-center justify-center gap-2 label-caps text-sm"
         aria-label={`Tankovat – ${car.make} ${car.model}`}
       >
         <Icon name="fuel" size={16} strokeWidth={2} /> Tankovat
       </button>
-    </li>
-  );
-}
-
-function EmptyBay({ index, first, onAdd }: { index: number; first: boolean; onAdd: () => void }) {
-  return (
-    <li className="relative flex flex-col border-panel-border">
-      <div className="px-3 pt-2.5">
-        <span className="font-mono-gauge text-xs text-ink-muted tracking-[0.15em]">P{index}</span>
-      </div>
-      {first ? (
-        <button onClick={onAdd} className="flex-1 m-3 mt-2 min-h-[180px] rounded border-2 border-dashed border-ink-muted/60 hover:border-accent hover:text-accent text-ink-muted flex flex-col items-center justify-center gap-2">
-          <Icon name="plus" size={28} />
-          <span className="label-caps text-sm">Zaparkovat auto</span>
-        </button>
-      ) : (
-        <div className="flex-1 m-3 mt-2 min-h-[180px] rounded border border-dashed border-panel-border flex items-center justify-center text-ink-muted/70 text-xs label-caps">
-          Volné stání
-        </div>
-      )}
     </li>
   );
 }
@@ -144,7 +118,6 @@ export default function GaragePage() {
   const floors = Math.max(1, Math.ceil((cars?.length ?? 0) / BAYS_PER_FLOOR));
   const floor = Math.min(floors, Math.max(1, Number(params.get('patro')) || 1));
   const onFloor = (cars ?? []).slice((floor - 1) * BAYS_PER_FLOOR, floor * BAYS_PER_FLOOR);
-  const freeBays = BAYS_PER_FLOOR - onFloor.length;
 
   const alerts = useMemo(() => new Map((cars ?? []).map((c) => [c.id, alertsFor(c, reminders, now)])), [cars, reminders, now]);
 
@@ -198,27 +171,27 @@ export default function GaragePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_88px] gap-3 md:gap-4">
             {/* Budova garáže */}
-            <section aria-label={`Garáž, patro ${floor} z ${floors}`} className="bg-panel border-2 border-ink rounded-t-xl rounded-b-sm overflow-hidden">
-              {/* štít a vytažená rolovací vrata */}
-              <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b-2 border-ink">
-                <span className="label-caps text-sm">Garáž · patro {floor}</span>
-                <span className="font-mono-gauge text-xs text-ink-muted">{fmtInt(cars.length)} {cars.length === 1 ? 'auto' : cars.length >= 2 && cars.length <= 4 ? 'auta' : 'aut'}</span>
+            <section aria-label={`Garáž, patro ${floor} z ${floors}`} className="bg-panel border border-panel-border rounded-lg overflow-hidden">
+              <div key={floor} className={direction === 'up' ? 'floor-up' : 'floor-down'}>
+                <GarageScene
+                  floor={floor}
+                  onAdd={() => setAdding(true)}
+                  bays={Array.from({ length: BAYS_PER_FLOOR }, (_, i) => {
+                    const car = onFloor[i] ?? null;
+                    const warnCount = car ? (alerts.get(car.id) ?? []).filter((x) => x.warn).length : 0;
+                    return { car, warn: warnCount > 0, label: warnCount ? `${warnCount} ${warnCount === 1 ? 'blížící se termín' : 'blížící se termíny'}` : 'v pořádku' };
+                  })}
+                />
+                <ul className="grid grid-cols-2 lg:grid-cols-4 border-t border-panel-border [&>li]:border-panel-border [&>li:nth-child(odd)]:border-r lg:[&>li]:border-r lg:[&>li:last-child]:border-r-0 [&>li:nth-child(-n+2)]:border-b lg:[&>li]:border-b-0">
+                  {Array.from({ length: BAYS_PER_FLOOR }, (_, i) => {
+                    const car = onFloor[i] ?? null;
+                    return (
+                      <BayCard key={car?.id ?? `free-${i}`} car={car} index={i + 1}
+                        alerts={car ? alerts.get(car.id) ?? [] : []} onFuel={() => car && setFuelCar(car.id)} />
+                    );
+                  })}
+                </ul>
               </div>
-              <div className="garage-door h-6 border-b border-panel-border" aria-hidden="true" />
-
-              <ul
-                key={floor}
-                className={`grid grid-cols-2 lg:grid-cols-4 bg-asphalt [&>li]:border-panel-border [&>li:nth-child(odd)]:border-r lg:[&>li]:border-r lg:[&>li:last-child]:border-r-0 [&>li:nth-child(-n+2)]:border-b lg:[&>li]:border-b-0 ${direction === 'up' ? 'floor-up' : 'floor-down'}`}
-              >
-                {onFloor.map((car, i) => (
-                  <Bay key={car.id} car={car} index={i + 1} alerts={alerts.get(car.id) ?? []} onFuel={() => setFuelCar(car.id)} />
-                ))}
-                {Array.from({ length: freeBays }, (_, i) => (
-                  <EmptyBay key={`free-${i}`} index={onFloor.length + i + 1} first={i === 0} onAdd={() => setAdding(true)} />
-                ))}
-              </ul>
-              {/* podlaha */}
-              <div className="h-3 border-t-2 border-ink bg-[repeating-linear-gradient(135deg,var(--c-panel-border)_0_2px,transparent_2px_10px)]" aria-hidden="true" />
             </section>
 
             {/* Ovladač pater jako ve výtahu */}

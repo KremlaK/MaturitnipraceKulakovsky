@@ -59,7 +59,10 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-const { parseFileUrl } = require('../utils/fileUrl');
+const rateLimit = require('express-rate-limit');
+const { parseFileUrl, isAllowedFileUrl } = require('../utils/fileUrl');
+const { removeBackground, isAvailable: cutoutAvailable, CutoutError } = require('../utils/cutout');
+const { uploadBuffer } = require('../utils/cloudinary');
 
 const BODY_TYPES = ['HATCHBACK', 'SEDAN', 'KOMBI', 'SUV'];
 const PHOTO_VIEWS = ['FRONT', 'SIDE'];
@@ -148,6 +151,8 @@ router.put('/:id', async (req, res) => {
         photoUrl: photo.value,
         // bez fotky nemá smysl uchovávat, odkud byla vyfocená
         photoView: photo.value === null ? null : photoView.value,
+        // nová nebo smazaná fotka = staré vystřižené auto už neplatí
+        photoCutoutUrl: photo.value !== undefined && photo.value !== existingCar.photoUrl ? null : undefined,
         bodyType: bodyType.value,
       },
     });
@@ -156,6 +161,53 @@ router.put('/:id', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Něco se pokazilo na serveru.' });
+  }
+});
+
+// Vystřižení je náročné na procesor – nejvýš 15 za hodinu na uživatele
+const cutoutLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 15,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  keyGenerator: (req) => req.userId,
+  message: { error: 'Moc pokusů o vystřižení auta. Zkus to prosím za hodinu.' },
+});
+
+const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+
+// Stáhne fotku – jen z našeho Cloudinary (žádné cizí adresy) a s limitem velikosti
+async function downloadPhoto(url) {
+  if (!isAllowedFileUrl(url)) throw new CutoutError('Fotka auta není nahraná přes aplikaci.');
+  const res = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(20000) });
+  if (!res.ok) throw new Error(`Stažení fotky selhalo: HTTP ${res.status}`);
+  if (Number(res.headers.get('content-length') || 0) > MAX_PHOTO_BYTES) throw new CutoutError('Fotka je moc velká.');
+  const buffer = Buffer.from(await res.arrayBuffer());
+  if (buffer.length > MAX_PHOTO_BYTES) throw new CutoutError('Fotka je moc velká.');
+  return buffer;
+}
+
+// POST /api/cars/:id/photo-cutout – vystřihne auto z fotky (pro garáž), jen majitel
+router.post('/:id/photo-cutout', cutoutLimiter, async (req, res) => {
+  try {
+    const car = await getOwnedCar(req.params.id, req.userId);
+    if (!car) return res.status(404).json({ error: 'Auto nenalezeno nebo nemáš oprávnění ho upravit.' });
+    if (!car.photoUrl) return res.status(400).json({ error: 'Auto nemá fotku.' });
+    if (!cutoutAvailable()) {
+      return res.status(503).json({ error: 'Vystřižení auta teď není k dispozici (na serveru chybí model).' });
+    }
+
+    const cutout = await removeBackground(await downloadPhoto(car.photoUrl));
+    const uploaded = await uploadBuffer(cutout, `autoapp/${req.userId}/cutouts`, { resource_type: 'image', format: 'webp' });
+    const updated = await prisma.car.update({
+      where: { id: car.id },
+      data: { photoCutoutUrl: uploaded.secure_url },
+    });
+    res.json(updated);
+  } catch (error) {
+    if (error instanceof CutoutError) return res.status(422).json({ error: error.message });
+    console.error('Vystřižení auta selhalo:', error);
+    res.status(500).json({ error: 'Auto se z fotky nepodařilo vystřihnout.' });
   }
 });
 

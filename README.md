@@ -15,6 +15,7 @@ cd backend
 cp .env.example .env        # a vyplň hodnoty (viz níže)
 npm install
 npx prisma migrate deploy   # vytvoří tabulky
+npm run model:download      # model pro vystřižení auta z fotky (~180 MB, jednou)
 npm run dev                 # http://localhost:5000
 
 # frontend (v druhém terminálu)
@@ -27,6 +28,10 @@ npm run dev                 # http://localhost:5173
 Bez `RESEND_API_KEY` se při vývoji e-maily (ověření, obnova hesla) jen vypíšou do konzole backendu – odkaz z nich jde rovnou otevřít.
 
 Testy backendu: `cd backend && npm test`. Kontrola frontendu: `cd frontend && npm run lint && npm run build`.
+
+## Vystřižení auta z fotky
+
+Když uživatel nahraje fotku auta, backend z ní odstraní pozadí (model ISNet přes `onnxruntime-node`, bez Pythonu) a vystřižené auto postaví do stání v garáži. Model se stahuje příkazem `npm run model:download` do `backend/models/` (je v `.gitignore`). Bez modelu aplikace funguje dál, jen se v garáži místo fotky ukáže kresba auta. Zpracování jedné fotky trvá 3–4 s (měřeno na běžném CPU), špička paměti je kolem 1,2 GB a model pak zůstává načtený. Server proto potřebuje aspoň 2 GB RAM; fotky se zpracovávají vždy po jedné.
 
 ## Proměnné prostředí
 

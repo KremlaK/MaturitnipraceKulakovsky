@@ -17,6 +17,8 @@ export interface Car {
   notes: string | null;
   photoUrl: string | null;
   photoView?: CarPhotoView | null;
+  /** auto vystřižené z fotky (průhledné pozadí) – vytváří ho server */
+  photoCutoutUrl?: string | null;
   createdAt: string;
   isOwner?: boolean;
   myRole?: MyRole | null;
@@ -56,6 +58,12 @@ export async function deleteCar(id: string): Promise<void> {
 
 export async function getCar(id: string): Promise<Car> {
   const res = await api.get(`/cars/${id}`);
+  return res.data;
+}
+
+/** Vystřihne auto z fotky na serveru (pár sekund). Vrátí auto s photoCutoutUrl. */
+export async function makeCutout(id: string): Promise<Car> {
+  const res = await api.post(`/cars/${id}/photo-cutout`, undefined, { timeout: 90000 });
   return res.data;
 }
 

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { createCar, type CarInput } from '../api/cars';
+import { createCar, makeCutout, type CarInput } from '../api/cars';
 import { CAR_MAKES, CAR_MAKE_NAMES } from '../data/carMakes';
 import { decodeVin } from '../api/vin';
 import CarPhotoField from './CarPhotoField';
@@ -23,6 +23,10 @@ function findKnownModel(make: string, value: string): string | null {
 function AddCarModal({ onClose, onCreated }: Props) {
   const [form, setForm] = useState<CarInput>({ make: '', model: '' });
   const [error, setError] = useState('');
+  const [stage, setStage] = useState<'saving' | 'cutout' | null>(null);
+  // auto je uložené, jen se nepovedlo vystřihnout z fotky – tlačítko pak jen zavře okno
+  const [savedWithWarning, setSavedWithWarning] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [vinLoading, setVinLoading] = useState(false);
   const [vinMessage, setVinMessage] = useState('');
@@ -77,17 +81,31 @@ function AddCarModal({ onClose, onCreated }: Props) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (savedWithWarning) return onClose();
     setError('');
     setLoading(true);
+    setStage('saving');
 
     try {
-      await createCar(form);
+      const created = await createCar(form);
+      if (form.photoUrl) {
+        setStage('cutout');
+        try {
+          await makeCutout(created.id);
+        } catch (err) {
+          onCreated();
+          setSavedWithWarning(true);
+          setError(`Auto je uložené, ale z fotky se ho nepodařilo vystřihnout: ${getErrorMessage(err, 'neznámá chyba')} V garáži se zatím ukáže kresba.`);
+          return;
+        }
+      }
       onCreated();
       onClose();
     } catch (err) {
       setError(getErrorMessage(err, 'Něco se pokazilo.'));
     } finally {
       setLoading(false);
+      setStage(null);
     }
   }
 
@@ -225,6 +243,11 @@ function AddCarModal({ onClose, onCreated }: Props) {
             onChange={({ url, view }) => setForm({ ...form, photoUrl: url, photoView: view })}
           />
 
+          {stage === 'cutout' && (
+            <p role="status" className="text-sm text-ink-muted border border-panel-border rounded px-3 py-2 bg-asphalt-light">
+              Vystřihujeme auto z fotky pro garáž. Trvá to pár sekund…
+            </p>
+          )}
           {error && (
             <p className="text-warning-red text-sm font-mono-gauge border border-warning-red/30 bg-warning-red/10 rounded px-3 py-2">
               {error}
@@ -244,7 +267,7 @@ function AddCarModal({ onClose, onCreated }: Props) {
               disabled={loading}
               className="flex-1 bg-accent hover:brightness-110 text-on-accent py-2 rounded font-mono-gauge font-bold text-sm uppercase tracking-wider disabled:opacity-50"
             >
-              {loading ? 'Ukládám...' : 'Přidat'}
+              {stage === 'cutout' ? 'Vystřihuji auto…' : loading ? 'Ukládám…' : savedWithWarning ? 'Zavřít' : 'Přidat'}
             </button>
           </div>
         </form>
