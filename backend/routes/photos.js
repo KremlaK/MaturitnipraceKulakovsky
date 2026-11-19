@@ -1,4 +1,5 @@
 const express = require('express');
+const { isAllowedFileUrl } = require('../utils/fileUrl');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
 const { getAccessibleCar } = require('../utils/carAccess');
@@ -37,8 +38,8 @@ router.post('/:carId/photos', async (req, res) => {
 
     const { url, category, caption } = req.body;
 
-    if (!url) {
-      return res.status(400).json({ error: 'URL fotky je povinná.' });
+    if (!isAllowedFileUrl(url)) {
+      return res.status(400).json({ error: 'Fotka chybí nebo nebyla nahraná přes aplikaci.' });
     }
 
     const photo = await prisma.photo.create({

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { updateCar, type Car, type CarInput } from '../api/cars';
 import { CAR_MAKES, CAR_MAKE_NAMES } from '../data/carMakes';
-import FileUpload from './FileUpload';
+import CarPhotoField from './CarPhotoField';
 import { getErrorMessage } from '../api/axios';
 import BodyTypePicker from './BodyTypePicker';
 
@@ -21,7 +21,8 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
     mileage: car.mileage || undefined,
     bodyType: car.bodyType ?? null,
     notes: car.notes || undefined,
-    photoUrl: car.photoUrl || undefined,
+    photoUrl: car.photoUrl ?? null,
+    photoView: car.photoView ?? 'FRONT',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -168,11 +169,10 @@ function EditCarModal({ car, onClose, onUpdated }: Props) {
             />
           </div>
 
-          <FileUpload
-            label="Fotka auta"
-            accept="image/*"
-            currentUrl={form.photoUrl}
-            onUploaded={(url) => setForm({ ...form, photoUrl: url })}
+          <CarPhotoField
+            url={form.photoUrl ?? null}
+            view={form.photoView ?? 'FRONT'}
+            onChange={({ url, view }) => setForm({ ...form, photoUrl: url, photoView: view })}
           />
 
           {error && (

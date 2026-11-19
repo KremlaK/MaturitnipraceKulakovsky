@@ -1,117 +1,74 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api, { getErrorMessage } from '../api/axios';
-import Icon from '../components/Icon';
+import { getErrorMessage } from '../api/axios';
+import { register } from '../api/auth';
+import { useAuth } from '../context/AuthContext';
+import AuthLayout, { PasswordField, StrengthMeter } from '../components/AuthLayout';
+import { fieldClass, labelClass, primaryButton } from '../lib/ui';
 
 function RegisterPage() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const { login } = useAuth();
   const navigate = useNavigate();
+
+  const mismatch = confirm.length > 0 && confirm !== password;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
+    if (password.length < 8) return setError('Heslo musí mít alespoň 8 znaků.');
+    if (password !== confirm) return setError('Hesla se neshodují.');
     setLoading(true);
-
     try {
-      await api.post('/auth/register', { email, password, name });
-      setSuccess(true);
-      setTimeout(() => navigate('/login'), 2500);
+      const res = await register({ email, password, name });
+      // Účet je rovnou přihlášený; ověření e-mailu připomene lišta v aplikaci
+      login(res.token, res.user);
+      navigate('/dashboard', { replace: true, state: { welcome: true, emailSent: res.emailSent } });
     } catch (err) {
-      setError(getErrorMessage(err, 'Něco se pokazilo.'));
+      setError(getErrorMessage(err, 'Registrace se nepovedla. Zkus to znovu.'));
     } finally {
       setLoading(false);
     }
   }
 
-  if (success) {
-    return (
-      <div className="min-h-screen bg-asphalt flex items-center justify-center px-4">
-        <div className="bg-panel border border-panel-border rounded-xl p-8 w-full max-w-md text-center">
-          <Icon name="check" size={40} className="text-ok mx-auto mb-3" />
-          <h1 className="text-xl font-display font-bold text-ink mb-2">Účet je vytvořený</h1>
-          <p className="text-ink-muted font-mono-gauge text-sm">
-            Zkontroluj svůj e-mail pro ověření účtu. Za chvíli tě přesměrujeme na přihlášení...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-asphalt flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <p className="text-accent font-mono-gauge text-xs uppercase tracking-[0.3em] mb-1">Vítej v garáži</p>
-          <h1 className="text-3xl font-display font-bold text-ink">AutoApp</h1>
+    <AuthLayout
+      title="Nový účet"
+      footer={<>Už máš účet? <Link to="/login" className="text-ink font-semibold underline underline-offset-2">Přihlas se</Link></>}
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="reg-name" className={labelClass}>Jméno <span className="normal-case tracking-normal font-normal">(nepovinné)</span></label>
+          <input id="reg-name" type="text" autoComplete="given-name" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} />
         </div>
-
-        <div className="bg-panel border border-panel-border rounded-xl p-8">
-          <h2 className="text-ink font-display font-semibold text-lg mb-6 uppercase tracking-wider">Registrace</h2>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block label-caps text-xs text-ink-muted mb-1">Jméno</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
-              />
-            </div>
-
-            <div>
-              <label className="block label-caps text-xs text-ink-muted mb-1">E-mail</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
-              />
-            </div>
-
-            <div>
-              <label className="block label-caps text-xs text-ink-muted mb-1">Heslo (min. 8 znaků)</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-                className="w-full px-3 py-2.5 rounded bg-asphalt-light text-ink border border-panel-border focus:outline-none focus:border-accent font-mono-gauge"
-              />
-            </div>
-
-            {error && (
-              <p className="text-warning-red text-sm font-mono-gauge border border-warning-red/30 bg-warning-red/10 rounded px-3 py-2">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-accent hover:brightness-110 text-on-accent py-3 rounded font-mono-gauge font-bold uppercase tracking-wider disabled:opacity-50 transition"
-            >
-              {loading ? 'Vytvářím účet…' : 'Vytvořit účet'}
-            </button>
-          </form>
-
-          <p className="text-ink-muted text-sm mt-6 text-center font-mono-gauge">
-            Už máš účet?{' '}
-            <Link to="/login" className="text-accent hover:underline">
-              Přihlas se
-            </Link>
+        <div>
+          <label htmlFor="reg-email" className={labelClass}>E-mail</label>
+          <input id="reg-email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={fieldClass} />
+        </div>
+        <div>
+          <PasswordField id="reg-password" label="Heslo" autoComplete="new-password" minLength={8} value={password} onChange={setPassword} describedBy="reg-strength" />
+          <StrengthMeter id="reg-strength" password={password} />
+        </div>
+        <div>
+          <PasswordField id="reg-confirm" label="Heslo znovu" autoComplete="new-password" minLength={8} value={confirm} onChange={setConfirm} describedBy="reg-confirm-hint" />
+          <p id="reg-confirm-hint" className={`text-xs mt-1 ${mismatch ? 'text-warning-red' : 'text-ink-muted'}`}>
+            {mismatch ? 'Hesla se neshodují.' : confirm && confirm === password ? 'Hesla se shodují.' : ' '}
           </p>
         </div>
-      </div>
-    </div>
+        {error && <p role="alert" className="text-warning-red text-sm border border-warning-red/30 bg-warning-red/10 rounded px-3 py-2">{error}</p>}
+        <button type="submit" disabled={loading} className={primaryButton}>
+          {loading ? 'Zakládám účet…' : 'Vytvořit účet'}
+        </button>
+        <p className="text-xs text-ink-muted">
+          Po registraci ti pošleme odkaz na ověření e-mailu. Aplikaci můžeš používat hned.
+        </p>
+      </form>
+    </AuthLayout>
   );
 }
 

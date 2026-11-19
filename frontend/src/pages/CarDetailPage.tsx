@@ -155,8 +155,8 @@ function CarDetailPage() {
     <div className="px-4 md:px-7 py-5 md:py-7">
       <div className="max-w-5xl">
         <div className="flex justify-between items-center gap-3 flex-wrap mb-4">
-          <Link to="/cars" className="text-ink-muted hover:text-ink text-sm inline-flex items-center gap-1.5">
-            <Icon name="arrowLeft" size={16} /> Moje auta
+          <Link to={`/cars/${id}`} className="text-ink-muted hover:text-ink text-sm inline-flex items-center gap-1.5">
+            <Icon name="arrowLeft" size={16} /> Přehled auta
           </Link>
           <div className="flex gap-3 items-center flex-wrap justify-end">
             {car.isOwner === false && car.myRole && (

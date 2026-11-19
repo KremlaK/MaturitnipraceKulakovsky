@@ -1,4 +1,5 @@
 const express = require('express');
+const { parseFileUrl } = require('../utils/fileUrl');
 const prisma = require('../prisma/client');
 const authMiddleware = require('../middleware/auth');
 const { getAccessibleCar } = require('../utils/carAccess');
@@ -36,6 +37,10 @@ router.post('/:carId/service', async (req, res) => {
     }
 
     const { type, description, price, date, mileage, invoiceUrl, photoUrl, latitude, longitude, placeName } = req.body;
+    const urlError = parseFileUrl(invoiceUrl).error || parseFileUrl(photoUrl).error;
+    if (urlError) {
+      return res.status(400).json({ error: urlError });
+    }
 
     if (!type || !date) {
       return res.status(400).json({ error: 'Typ opravy a datum jsou povinné.' });
@@ -89,6 +94,10 @@ router.put('/service/:id', async (req, res) => {
     }
 
     const { type, description, price, date, mileage, invoiceUrl, photoUrl, latitude, longitude, placeName } = req.body;
+    const urlError = parseFileUrl(invoiceUrl).error || parseFileUrl(photoUrl).error;
+    if (urlError) {
+      return res.status(400).json({ error: urlError });
+    }
 
     const updated = await prisma.serviceRecord.update({
       where: { id: req.params.id },

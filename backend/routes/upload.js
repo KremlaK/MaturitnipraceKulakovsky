@@ -27,6 +27,9 @@ router.post('/', upload.single('file'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: 'Žádný soubor nebyl nahrán.' });
     }
+    if (!upload.matchesSignature(req.file.buffer, req.file.mimetype)) {
+      return res.status(400).json({ error: 'Soubor neodpovídá svému typu. Povoleno: JPEG, PNG, WEBP, PDF.' });
+    }
 
     const result = await uploadToCloudinary(req.file.buffer, `autoapp/${req.userId}`);
 

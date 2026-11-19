@@ -77,7 +77,8 @@ router.get('/search', async (req, res) => {
 
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'AutoApp/1.0 (osobni projekt, kontakt: kontakt@example.com)',
+        // Nominatim vyžaduje identifikaci aplikace; kontakt se bere z .env (NOMINATIM_CONTACT), ne z kódu
+        'User-Agent': `AutoApp/1.0${process.env.NOMINATIM_CONTACT ? ` (${process.env.NOMINATIM_CONTACT})` : ''}`,
       },
     });
 

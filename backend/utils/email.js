@@ -1,6 +1,13 @@
 const { Resend } = require('resend');
 
 async function sendEmail(message) {
+  // Bez Resend klíče se při vývoji e-mail jen vypíše do konzole (odkazy jdou zkopírovat).
+  // V produkci je klíč povinný – chybějící klíč je chyba.
+  if (!process.env.RESEND_API_KEY) {
+    if (process.env.NODE_ENV === 'production') throw new Error('RESEND_API_KEY není nastavený.');
+    console.log(`\n[e-mail – vývojový režim] Komu: ${message.to}\nPředmět: ${message.subject}\n${message.text || message.html}\n`);
+    return;
+  }
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
     ...message,
@@ -27,6 +34,7 @@ async function sendVerificationEmail(toEmail, token) {
   await sendEmail({
     to: toEmail,
     subject: 'Ověř svůj e-mail - AutoApp',
+    text: `Ověř svůj e-mail: ${verifyUrl}`,
     html: `
       <h2>Vítej v AutoApp!</h2>
       <p>Pro ověření svého e-mailu klikni na odkaz níže:</p>
@@ -42,6 +50,7 @@ async function sendPasswordResetEmail(toEmail, token) {
   await sendEmail({
     to: toEmail,
     subject: 'Obnovení hesla - AutoApp',
+    text: `Obnov si heslo: ${resetUrl}`,
     html: `
       <h2>Žádost o obnovení hesla</h2>
       <p>Klikni na odkaz níže pro nastavení nového hesla:</p>
@@ -63,7 +72,7 @@ async function sendReminderEmail(toEmail, reminders) {
 
   await sendEmail({
     to: toEmail,
-    subject: `⏰ Blížící se připomínky - AutoApp`,
+    subject: 'Blížící se připomínky - AutoApp',
     html: `
       <h2>Máš blížící se připomínky</h2>
       <ul>${itemsHtml}</ul>
@@ -72,4 +81,17 @@ async function sendReminderEmail(toEmail, reminders) {
   });
 }
 
-module.exports = { sendVerificationEmail, sendPasswordResetEmail, sendReminderEmail };
+async function sendBugReportEmail(toEmail, report) {
+  await sendEmail({
+    to: toEmail,
+    subject: `Nová chyba: ${report.title.slice(0, 80)} - AutoApp`,
+    text: `${report.title}\n\n${report.description}\n\nStránka: ${report.pageUrl || '—'}`,
+    html: `
+      <h2>${escapeHtml(report.title)}</h2>
+      <p style="white-space:pre-wrap">${escapeHtml(report.description)}</p>
+      <p>Stránka: ${escapeHtml(report.pageUrl || '—')}<br>Prohlížeč: ${escapeHtml(report.userAgent || '—')}</p>
+    `,
+  });
+}
+
+module.exports = { sendVerificationEmail, sendPasswordResetEmail, sendReminderEmail, sendBugReportEmail };

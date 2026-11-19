@@ -59,7 +59,17 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+const { parseFileUrl } = require('../utils/fileUrl');
+
 const BODY_TYPES = ['HATCHBACK', 'SEDAN', 'KOMBI', 'SUV'];
+const PHOTO_VIEWS = ['FRONT', 'SIDE'];
+
+function parsePhotoView(value) {
+  if (value === undefined) return { value: undefined };
+  if (value === null || value === '') return { value: null };
+  if (PHOTO_VIEWS.includes(value)) return { value };
+  return { error: 'Fotka musí být zepředu (FRONT) nebo z boku (SIDE).' };
+}
 
 // undefined = beze změny, '' / null = smazat, jinak musí jít o známý typ karoserie
 function parseBodyType(value) {
@@ -79,8 +89,11 @@ router.post('/', async (req, res) => {
     }
 
     const bodyType = parseBodyType(req.body.bodyType);
-    if (bodyType.error) {
-      return res.status(400).json({ error: bodyType.error });
+    const photo = parseFileUrl(photoUrl);
+    const photoView = parsePhotoView(req.body.photoView);
+    const invalid = bodyType.error || photo.error || photoView.error;
+    if (invalid) {
+      return res.status(400).json({ error: invalid });
     }
 
     const car = await prisma.car.create({
@@ -93,7 +106,8 @@ router.post('/', async (req, res) => {
         mileage: mileage || 0,
         bodyType: bodyType.value ?? null,
         notes: notes || null,
-        photoUrl: photoUrl || null,
+        photoUrl: photo.value ?? null,
+        photoView: photo.value ? (photoView.value ?? 'FRONT') : null,
         ownerId: req.userId,
       },
     });
@@ -120,13 +134,22 @@ router.put('/:id', async (req, res) => {
     const { vin, licensePlate, make, model, year, mileage, notes, photoUrl } = req.body;
 
     const bodyType = parseBodyType(req.body.bodyType);
-    if (bodyType.error) {
-      return res.status(400).json({ error: bodyType.error });
+    const photo = parseFileUrl(photoUrl);
+    const photoView = parsePhotoView(req.body.photoView);
+    const invalid = bodyType.error || photo.error || photoView.error;
+    if (invalid) {
+      return res.status(400).json({ error: invalid });
     }
 
     const car = await prisma.car.update({
       where: { id: req.params.id },
-      data: { vin, licensePlate, make, model, year, mileage, notes, photoUrl, bodyType: bodyType.value },
+      data: {
+        vin, licensePlate, make, model, year, mileage, notes,
+        photoUrl: photo.value,
+        // bez fotky nemá smysl uchovávat, odkud byla vyfocená
+        photoView: photo.value === null ? null : photoView.value,
+        bodyType: bodyType.value,
+      },
     });
 
     res.json(car);

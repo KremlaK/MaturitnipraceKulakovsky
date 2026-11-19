@@ -308,3 +308,44 @@ const FROM_API: Record<string, BodyType> = { HATCHBACK: 'hatch', SEDAN: 'sedan',
 export function drawingBodyType(car: { make: string; model: string; bodyType?: string | null }): BodyType {
   return (car.bodyType && FROM_API[car.bodyType]) || guessBodyType(`${car.make} ${car.model}`);
 }
+
+// ---------- souhrn výdajů ----------
+
+export interface ExpensePart {
+  key: string;
+  label: string;
+  amount: number;
+}
+
+export interface ExpenseSummary {
+  total: number;
+  parts: ExpensePart[];
+  /** Kč na ujetý km (jen když máme dost najeto) */
+  perKm: number | null;
+  since: string | null;
+}
+
+export function buildExpenseSummary(fuel: FuelRecord[], services: ServiceRecord[], expenses: Expense[]): ExpenseSummary {
+  const parts: ExpensePart[] = [
+    { key: 'fuel', label: 'Palivo', amount: fuel.reduce((s, r) => s + r.totalPrice, 0) },
+    { key: 'service', label: 'Servis a opravy', amount: services.reduce((s, r) => s + (r.price ?? 0), 0) },
+  ];
+  const byCategory = new Map<string, number>();
+  for (const e of expenses) byCategory.set(e.category, (byCategory.get(e.category) ?? 0) + e.price);
+  for (const [cat, amount] of byCategory) {
+    parts.push({ key: cat, label: EXPENSE_CATEGORY_LABELS[cat as keyof typeof EXPENSE_CATEGORY_LABELS] ?? cat, amount });
+  }
+  const nonZero = parts.filter((p) => p.amount > 0).sort((a, b) => b.amount - a.amount);
+  const total = nonZero.reduce((s, p) => s + p.amount, 0);
+
+  const kms = [...fuel.map((r) => r.mileage), ...services.map((r) => r.mileage ?? NaN)].filter(Number.isFinite);
+  const driven = kms.length >= 2 ? Math.max(...kms) - Math.min(...kms) : 0;
+  const dates = [...fuel, ...services, ...expenses].map((r) => +new Date(r.date));
+
+  return {
+    total,
+    parts: nonZero,
+    perKm: driven >= 500 ? total / driven : null,
+    since: dates.length ? new Date(Math.min(...dates)).toISOString() : null,
+  };
+}

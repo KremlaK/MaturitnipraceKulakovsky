@@ -5,8 +5,13 @@ require('dotenv').config();
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
-// Zadej svůj e-mail, pod kterým jsi zaregistrovaný
-const USER_EMAIL = 'kontakt@example.com';
+// E-mail účtu, pro který se vygenerují testovací data – zadává se při spuštění, ne v kódu:
+// SEED_USER_EMAIL=ty@example.cz node prisma/seed-test-data.js
+const USER_EMAIL = process.env.SEED_USER_EMAIL;
+if (!USER_EMAIL) {
+  console.error('Nastav SEED_USER_EMAIL (e-mail existujícího účtu).');
+  process.exit(1);
+}
 
 const CAR_TEMPLATES = [
   { make: 'Volkswagen', model: 'Golf', year: 2019, licensePlate: '2CD3456', startMileage: 62000 },

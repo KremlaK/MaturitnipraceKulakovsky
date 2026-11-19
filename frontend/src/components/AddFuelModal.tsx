@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createFuelRecord, getFuelRecords, type FuelRecordInput } from '../api/fuel';
 import { getCar } from '../api/cars';
+import { addStation, getStations, type RecentPlace, type Station } from '../api/stations';
+import { shortPlaceName } from '../lib/ui';
+import Icon from './Icon';
+import { Link } from 'react-router-dom';
 import LocationPicker from './LocationPicker';
 import { getErrorMessage } from '../api/axios';
 
@@ -41,6 +45,10 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
     latitude: null,
     longitude: null,
   });
+  const [favorites, setFavorites] = useState<Station[]>([]);
+  const [recentPlaces, setRecentPlaces] = useState<RecentPlace[]>([]);
+  const [pickerKey, setPickerKey] = useState(0);
+  const [saveFavorite, setSaveFavorite] = useState(false);
   const [litersText, setLitersText] = useState('');
   const [priceText, setPriceText] = useState('');
   const [error, setError] = useState('');
@@ -48,6 +56,13 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
 
   useEffect(() => {
     let active = true;
+    getStations()
+      .then((d) => {
+        if (!active) return;
+        setFavorites(d.favorites);
+        setRecentPlaces(d.recent);
+      })
+      .catch(() => undefined);
     Promise.all([getCar(carId), getFuelRecords(carId)])
       .then(([car, records]) => {
         if (!active) return;
@@ -75,6 +90,16 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
     setForm((current) => ({ ...current, latitude: lat, longitude: lng, placeName }));
   }
 
+  // Výběr pumpy jedním ťuknutím. Mapa se znovu vykreslí (key) – tím se zruší i čekající
+  // GPS dotaz, který by jinak vybranou pumpu přepsal.
+  function pickStation(place: { name: string; latitude: number | null; longitude: number | null }) {
+    setForm((current) => ({ ...current, placeName: place.name, latitude: place.latitude, longitude: place.longitude }));
+    setSaveFavorite(false);
+    setPickerKey((k) => k + 1);
+  }
+
+  const placeIsFavorite = !!form.placeName && favorites.some((f) => f.name.toLowerCase() === form.placeName!.toLowerCase());
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
@@ -82,6 +107,10 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
 
     try {
       await createFuelRecord(carId, form);
+      if (saveFavorite && form.placeName && !placeIsFavorite) {
+        // pumpa do oblíbených – když se nepovede (třeba už tam je), tankování je i tak uložené
+        await addStation({ name: shortPlaceName(form.placeName), latitude: form.latitude, longitude: form.longitude }).catch(() => undefined);
+      }
       onCreated();
       onClose();
     } catch (err) {
@@ -208,11 +237,45 @@ function AddFuelModal({ carId, onClose, onCreated }: Props) {
             Pro přesný výpočet spotřeby je potřeba tankovat vždy do plna.
           </p>
 
+          {(favorites.length > 0 || recentPlaces.length > 0) && (
+            <div>
+              <div className="flex items-baseline justify-between">
+                <p className="block label-caps text-xs text-ink-muted mb-1.5">Pumpa</p>
+                <Link to="/account" className="text-xs text-ink-muted underline underline-offset-2">Spravovat</Link>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                {[...favorites.map((f) => ({ ...f, fav: true })), ...recentPlaces.map((r) => ({ ...r, fav: false }))].map((p) => {
+                  const active = form.placeName === p.name;
+                  return (
+                    <button
+                      key={`${p.fav}-${p.name}`}
+                      type="button"
+                      onClick={() => pickStation(p)}
+                      aria-pressed={active}
+                      className={`h-10 px-3 rounded-full border text-sm whitespace-nowrap inline-flex items-center gap-1.5 flex-none ${active ? 'border-accent bg-accent-soft text-accent' : 'border-panel-border bg-asphalt-light hover:border-ink-muted'}`}
+                    >
+                      {p.fav && <Icon name="star" size={14} />}
+                      {shortPlaceName(p.name)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <LocationPicker
+            key={pickerKey}
             latitude={form.latitude ?? null}
             longitude={form.longitude ?? null}
             onChange={handleLocationChange}
           />
+
+          {form.placeName && !placeIsFavorite && (
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={saveFavorite} onChange={(e) => setSaveFavorite(e.target.checked)} className="w-4 h-4 accent-accent" />
+              Uložit „{shortPlaceName(form.placeName)}“ do oblíbených pump
+            </label>
+          )}
 
           {error && (
             <p className="text-warning-red text-sm font-mono-gauge border border-warning-red/30 bg-warning-red/10 rounded px-3 py-2">

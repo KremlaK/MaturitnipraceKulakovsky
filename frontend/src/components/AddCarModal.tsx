@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { createCar, type CarInput } from '../api/cars';
 import { CAR_MAKES, CAR_MAKE_NAMES } from '../data/carMakes';
 import { decodeVin } from '../api/vin';
-import FileUpload from './FileUpload';
+import CarPhotoField from './CarPhotoField';
 import { getErrorMessage } from '../api/axios';
 import BodyTypePicker from './BodyTypePicker';
 
@@ -219,11 +219,10 @@ function AddCarModal({ onClose, onCreated }: Props) {
             />
           </div>
 
-          <FileUpload
-            label="Fotka auta"
-            accept="image/*"
-            currentUrl={form.photoUrl}
-            onUploaded={(url) => setForm({ ...form, photoUrl: url })}
+          <CarPhotoField
+            url={form.photoUrl ?? null}
+            view={form.photoView ?? 'FRONT'}
+            onChange={({ url, view }) => setForm({ ...form, photoUrl: url, photoView: view })}
           />
 
           {error && (

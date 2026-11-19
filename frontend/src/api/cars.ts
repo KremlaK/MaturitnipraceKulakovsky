@@ -3,6 +3,7 @@ import api from './axios';
 export type MyRole = 'MAJITEL' | 'SPOLUMAJITEL' | 'SERVIS';
 
 export type CarBodyType = 'HATCHBACK' | 'SEDAN' | 'KOMBI' | 'SUV';
+export type CarPhotoView = 'FRONT' | 'SIDE';
 
 export interface Car {
   id: string;
@@ -15,6 +16,7 @@ export interface Car {
   bodyType?: CarBodyType | null;
   notes: string | null;
   photoUrl: string | null;
+  photoView?: CarPhotoView | null;
   createdAt: string;
   isOwner?: boolean;
   myRole?: MyRole | null;
@@ -34,7 +36,8 @@ export interface CarInput {
   mileage?: number;
   bodyType?: CarBodyType | null;
   notes?: string;
-  photoUrl?: string;
+  photoUrl?: string | null;
+  photoView?: CarPhotoView | null;
 }
 
 export async function getCars(): Promise<Car[]> {

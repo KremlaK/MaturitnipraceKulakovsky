@@ -18,6 +18,8 @@ async function checkReminders() {
     where: {
       completed: false,
       emailAlert: true,
+      // jen ověřené adresy – překlep při registraci nesmí posílat upozornění cizím lidem
+      car: { owner: { emailVerified: true } },
       dueDate: { lte: alertDateThreshold },
       OR: [
         { notifiedAt: null },
@@ -36,6 +38,8 @@ async function checkReminders() {
     where: {
       completed: false,
       emailAlert: true,
+      // jen ověřené adresy – překlep při registraci nesmí posílat upozornění cizím lidem
+      car: { owner: { emailVerified: true } },
       dueMileage: { not: null },
       OR: [
         { notifiedAt: null },

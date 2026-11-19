@@ -5,7 +5,13 @@ require('dotenv').config();
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
-const USER_EMAIL = 'kontakt@example.com';
+// E-mail účtu se zadává při spuštění, ne v kódu:
+// SEED_USER_EMAIL=ty@example.cz node prisma/seed-reminders.js
+const USER_EMAIL = process.env.SEED_USER_EMAIL;
+if (!USER_EMAIL) {
+  console.error('Nastav SEED_USER_EMAIL (e-mail existujícího účtu).');
+  process.exit(1);
+}
 
 const REMINDER_TYPES = ['VYMENA_OLEJE', 'STK', 'EMISE', 'POJISTENI', 'VYMENA_PNEUMATIK', 'VLASTNI'];
 

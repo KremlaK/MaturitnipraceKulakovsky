@@ -1,6 +1,25 @@
+# Závislosti a buildy
 node_modules/
-.env
 dist/
 build/
 *.log
 
+# Tajemství – nikdy do gitu. Vzor proměnných je v .env.example
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Exporty a soubory vzniklé při testování (můžou obsahovat osobní data)
+backend/*.pdf
+backend/*.xlsx
+backend/uploads/
+*.Zone.Identifier
+*:Zone.Identifier
+
+# Editor a systém
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

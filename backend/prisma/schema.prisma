@@ -11,34 +11,40 @@ datasource db {
 }
 
 model User {
-  id                   String     @id @default(uuid())
-  email                String     @unique
+  id                   String            @id @default(uuid())
+  email                String            @unique
   password             String
   name                 String?
-  emailVerified        Boolean    @default(false)
+  emailVerified        Boolean           @default(false)
   emailVerifyToken     String?
   emailVerifyExpires   DateTime?
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
-  createdAt            DateTime   @default(now())
-  updatedAt            DateTime   @updatedAt
+  // zvýší se při změně hesla – tím přestanou platit všechna dříve vydaná přihlášení
+  tokenVersion         Int               @default(0)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
   cars                 Car[]
   carShares            CarShare[]
+  favoriteStations     FavoriteStation[]
+  bugReports           BugReport[]
+  review               Review?
 }
 
 model Car {
-  id           String    @id @default(uuid())
-  vin          String?   @unique
+  id           String        @id @default(uuid())
+  vin          String?       @unique
   licensePlate String?
   make         String
   model        String
   year         Int?
-  mileage      Int?      @default(0)
+  mileage      Int?          @default(0)
   bodyType     BodyType?
+  photoView    CarPhotoView?
   notes        String?
   photoUrl     String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   ownerId        String
   owner          User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -180,4 +186,56 @@ enum BodyType {
   SEDAN
   KOMBI
   SUV
+}
+
+// Odkud je vyfocená hlavní fotka auta (určuje, jak se zobrazí v garáži a na přehledu)
+enum CarPhotoView {
+  FRONT
+  SIDE
+}
+
+// Oblíbené čerpací stanice uživatele – rychlý výběr při tankování
+model FavoriteStation {
+  id        String   @id @default(uuid())
+  name      String
+  latitude  Float?
+  longitude Float?
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+}
+
+enum BugStatus {
+  NEW
+  SEEN
+  FIXED
+}
+
+// Hlášení chyb od uživatelů
+model BugReport {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  pageUrl     String?
+  userAgent   String?
+  status      BugStatus @default(NEW)
+  createdAt   DateTime  @default(now())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// Recenze aplikace – každý uživatel jednu, může ji upravit
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  text      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

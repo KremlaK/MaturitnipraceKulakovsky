@@ -89,3 +89,24 @@ body {
   outline: 2px solid var(--c-accent);
   outline-offset: 2px;
 }
+
+/* Garáž: příjezd patra při přepnutí (nahoru / dolů) */
+@keyframes floor-in-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes floor-in-down {
+  from { opacity: 0; transform: translateY(-18px); }
+  to { opacity: 1; transform: none; }
+}
+.floor-up { animation: floor-in-up 0.28s ease-out; }
+.floor-down { animation: floor-in-down 0.28s ease-out; }
+
+/* Rolovací vrata vytažená nahoru – lamely jako na výkresu */
+.garage-door {
+  background-image: repeating-linear-gradient(to bottom, transparent 0 7px, var(--c-panel-border) 7px 8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floor-up, .floor-down { animation: none; }
+}
